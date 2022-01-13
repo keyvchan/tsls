@@ -1,0 +1,48 @@
+name: latest-builds
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose --workspace --exclude tree-sitter-query
+      - uses: actions/upload-artifact@v2
+        with:
+          name: tsls-linux
+          path: target/debug/tsls
+          retention-days: 1
+
+  publish:
+    needs: [linux]
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/download-artifact@v2
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic-release-tag: "latest"
+          pre_release: true
+          title: "Develpment build"
+          files: |
+            tsls-linux
