@@ -11,7 +11,7 @@ on:
 
 jobs:
   linux:
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,12 +19,30 @@ jobs:
           submodules: recursive
       - name: Build
         run: cargo build --verbose
-      - name: Run tests
-        run: cargo test --verbose --workspace --exclude tree-sitter-query
+      - name: Install zip
+        run: sudo apt-get install zip
+      - name: Pack the artifacts
+        run: zip tsls-linux-x86_64.zip target/debug/tsls
       - uses: actions/upload-artifact@v2
         with:
-          name: tsls-linux
-          path: target/debug/tsls
+          name: tsls-linux-x86_64
+          path: target/debug/tsls-linux-x86_64.zip
+          retention-days: 1
+  macos:
+    # if: github.event.pull_request.merged == true
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Build
+        run: cargo build --verbose
+      - name: Pack the artifacts
+        run: zip tsls-macos-x86_64.zip target/debug/tsls
+      - uses: actions/upload-artifact@v2
+        with:
+          name: tsls-macos-x86_64
+          path: target/debug/tsls-macos-x86_64.zip
           retention-days: 1
 
   publish:
@@ -46,4 +64,5 @@ jobs:
           prerelease: true
           title: "Develpment build"
           files: |
-            tsls-linux
+            "tsls-linux-x86_64.zip"
+            "tsls-macos-x86_64.zip"
