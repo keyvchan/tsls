@@ -1,0 +1,57 @@
+use crate::global_state::{GlobalState, Properties};
+use log::{error, warn};
+use lsp_types::TextDocumentItem;
+use queries::{errors, highlight, locals};
+use tree_sitter::Tree;
+
+impl GlobalState {
+    pub fn get_snapshot(&self) -> GlobalState {
+        self.clone()
+    }
+    pub fn build_cache(&mut self, source_code: TextDocumentItem, tree: &Tree) {
+        let (definitions_lookup_map, ordered_scopes, mut identifiers) =
+            locals::build_definitions_and_scopes(&source_code, &tree.root_node());
+
+        highlight::update_identifiers_kind(&mut identifiers, &ordered_scopes, &source_code, tree);
+
+        let keywords = highlight::build_keywords_cache(source_code.language_id.clone());
+
+        // Save it to the global state
+        let properties = Properties {
+            ast: tree.to_owned(),
+            source_code: source_code.text.as_bytes().to_vec(),
+            language_id: source_code.language_id.to_owned(),
+            version: source_code.version,
+            keywords,
+            ordered_scopes,
+            definitions_lookup_map,
+            identifiers,
+        };
+
+        // insert update the value in hashmap
+        self.sources.insert(source_code.uri.clone(), properties);
+
+        let diagnostics = errors::build_diagnostics(&source_code, &tree.root_node());
+
+        self.diagnostics.insert(source_code.uri, diagnostics);
+    }
+
+    pub fn get_version(&self, uri: &lsp_types::Url) -> Option<i32> {
+        let source = self.sources.get(uri);
+        match source {
+            Some(source) => Some(source.version),
+            // we don't have a version, return 0
+            None => Some(0),
+        }
+    }
+
+    pub fn update_cache(&mut self, source_code: TextDocumentItem, tree: &Tree) {
+        // check if the cache needed to be updated by source_code.version
+        if source_code.version >= self.get_version(&source_code.uri).unwrap_or_default() {
+            // insert the cache
+            self.build_cache(source_code, tree);
+        } else {
+            warn!("Cache already up to date");
+        }
+    }
+}

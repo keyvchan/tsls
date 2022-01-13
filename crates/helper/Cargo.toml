@@ -1,0 +1,13 @@
+[package]
+name = "helper"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tree-sitter = "0.20.0"
+lsp-types = "0.91.0"
+log = "0.4.14"
+tree-sitter-c = {version = "0.20.1", optional = false}
+tree-sitter-cpp = { version = "0.20.0", optional = false}

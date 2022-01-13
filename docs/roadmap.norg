@@ -1,0 +1,51 @@
+@document.meta
+  title: roadmap
+  description: 
+  author: keyv
+  categories: 
+  created: 2021-12-10
+  version: 0.0.9
+@end
+
+* Roadmap
+
+  - [ ] cli support
+  - [ ] Dynamic loading 
+  - [-] Add tests
+  - [-] Remove unwrap()
+  - [-] Documentation
+  - [x] Log
+  - [?] Use `macro` to simplify code
+  - [ ] Performance
+
+  - [x] Find difinition and reference
+  -- [x] query local definitions
+  -- [x] query local references
+  -- [x] definition loopup table
+
+  - [x] Goto difinition
+  -- [x] Scope support
+  -- [x] Jump to definition
+  - [ ] Find References in single document
+  - [=] Ast based Basic completion
+  -- [x] `INVOKED`
+  -- [ ] `TRIGGER_CHARACTER`
+  -- [x] scope support
+  -- [x] keywords completion
+  - [x] Basic Diagnostics
+  - [x] Incremental document syncing
+
+  - [ ] Samatics highlighting
+  - [ ] Code folding
+  - [ ] Code format
+  - [ ] Find Implementations
+  - [ ] Document symbols
+  - [ ] Hover
+  - [ ] Signature help
+  - [ ] Code actions
+  - [ ] Code lens
+  - [ ] Workspace symbols
+  - [ ] References cross files
+  - [ ] Project-wise support
+
+
