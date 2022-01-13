@@ -9,7 +9,6 @@ on:
 
 jobs:
   linux:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +24,6 @@ jobs:
           path: target/debug/tsls-linux-x86_64
           retention-days: 1
   macos:
-    if: github.event.pull_request.merged == true
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
