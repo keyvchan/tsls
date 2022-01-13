@@ -68,5 +68,4 @@ jobs:
           prerelease: true
           title: "Develpment build"
           files: |
-            "tsls-linux-x86_64.zip"
-            "tsls-macos-x86_64.zip"
+            *.zip"
