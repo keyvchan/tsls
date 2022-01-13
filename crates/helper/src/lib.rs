@@ -1,12 +1,12 @@
 /// This Module contains some helper functions that does type conversions.
 ///
 /// # Functions List
-///     - `tree_sitter::Point` -> Byte Offset
-///     - Byte Offset -> `tree_sitter::Point`
-///     - `tree_sitter::Point` -> `lsp_types::Position`
-///     - `lsp_types::Position` -> `tree_sitter::Point`
-///     - `tree_sitter::Range` -> `lsp_types::Range`
-///     - `lsp_types::Range` -> `tree_sitter::Range`
+/// `tree_sitter::Point` -> Byte Offset
+/// Byte Offset -> `tree_sitter::Point`
+/// `tree_sitter::Point` -> `lsp_types::Position`
+/// `lsp_types::Position` -> `tree_sitter::Point`
+/// `tree_sitter::Range` -> `lsp_types::Range`
+/// `lsp_types::Range` -> `tree_sitter::Range`
 ///
 pub mod convert {
     use lsp_types::Position;
