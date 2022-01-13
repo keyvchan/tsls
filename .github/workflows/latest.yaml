@@ -58,9 +58,9 @@ jobs:
           submodules: recursive
       - uses: actions/download-artifact@v2
       - name: Pack the artifacts
-        run: zip tsls-macos-x86_64.zip tsls/tsls-macos-x86_64
+        run: zip tsls-macos-x86_64.zip tsls-macos-x86_64
       - name: Pack the artifacts
-        run: zip tsls-linux-x86_64.zip tsls/tsls-linux-x86_64
+        run: zip tsls-linux-x86_64.zip tsls-linux-x86_64
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
