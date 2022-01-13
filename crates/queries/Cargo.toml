@@ -12,3 +12,4 @@ lsp-types = "0.91.0"
 dirs = "4.0.0"
 
 tree-sitter-query = {path = "../../parsers/tree-sitter-query", version = "0.0.1"}
+helper = {path = "../helper", version = "0.1.0"}

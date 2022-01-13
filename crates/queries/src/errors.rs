@@ -1,6 +1,6 @@
 use crate::match_by_query_source;
-use crate::utils;
 
+use helper::convert::ts_range_to_lsp_range;
 use lsp_types::TextDocumentItem;
 use tree_sitter::Node;
 
@@ -17,7 +17,7 @@ pub fn build_diagnostics(
     for item in &result {
         for (variable_type, node) in item {
             if variable_type == ERROR {
-                let range = utils::ts_range_to_lsp_range(&node.range());
+                let range = ts_range_to_lsp_range(&node.range());
 
                 let diagnostic = lsp_types::Diagnostic::new_simple(range, "ERROR".to_string());
 

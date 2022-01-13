@@ -19,7 +19,7 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
         )),
         completion_provider: Some(CompletionOptions {
             resolve_provider: None,
-            trigger_characters: Some(vec![":".to_string(), ".".to_string(), "'".to_string()]),
+            trigger_characters: Some(vec![".".to_string()]),
             all_commit_characters: None,
             work_done_progress_options: WorkDoneProgressOptions {
                 work_done_progress: None,

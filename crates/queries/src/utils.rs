@@ -1,31 +1,9 @@
-use lsp_types::{CompletionItemKind, Position};
+use helper::convert::ts_point_to_lsp_position;
+use lsp_types::Position;
 use std::fs::File;
 use std::io::prelude::*;
-use tree_sitter::{Node, Point, Range};
+use tree_sitter::{Node, Range};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Symbol {
-    pub name: String,
-    pub completion_kind: Vec<CompletionItemKind>,
-    pub location: Range,
-    pub belongs_to: Vec<Range>,
-}
-
-impl Symbol {
-    pub fn default() -> Self {
-        Self {
-            name: String::new(),
-            completion_kind: vec![CompletionItemKind::TEXT],
-            location: Range {
-                start_byte: 0,
-                end_byte: 0,
-                start_point: Point { row: 0, column: 0 },
-                end_point: Point { row: 0, column: 0 },
-            },
-            belongs_to: vec![],
-        }
-    }
-}
 pub fn get_smallest_scope_id_by_position(p: &Position, scopes: &[Range]) -> usize {
     let mut scope_id: usize = 0;
     for (pos, this_scope) in scopes.iter().enumerate() {
@@ -56,27 +34,6 @@ pub fn get_smallest_scope_id_by_node(node: &Node, scopes: &[Range]) -> usize {
         }
     }
     positon
-}
-
-fn ts_point_to_lsp_position(point: &Point) -> Position {
-    Position {
-        line: point.row as u32,
-        character: point.column as u32,
-    }
-}
-
-/// Transform range from treesitter to lsp range. can't be reversed.
-pub fn ts_range_to_lsp_range(range: &Range) -> lsp_types::Range {
-    lsp_types::Range {
-        start: lsp_types::Position {
-            line: range.start_point.row as u32,
-            character: range.start_point.column as u32,
-        },
-        end: lsp_types::Position {
-            line: range.end_point.row as u32,
-            character: range.end_point.column as u32,
-        },
-    }
 }
 
 pub fn get_query_source(language_id: &str, source_type: &str) -> Option<String> {

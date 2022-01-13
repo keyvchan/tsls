@@ -27,6 +27,6 @@
 
 ## Inspired by
 
-- [semantic](https://github.com/github.com/semantic)
+- [semantic](https://github.com/github/semantic)
 - [bash-language-server](https://github.com/bash-lsp/bash-language-server)
 - [rust-analyzer](https://github/github.com/rust-analyzer/rust-analyzer)

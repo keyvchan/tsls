@@ -1,5 +1,5 @@
+use helper::types::Symbol;
 use lsp_types::{Diagnostic, Position, Url};
-use queries::utils::Symbol;
 use std::collections::HashMap;
 use tree_sitter::{Node, Range, Tree};
 
@@ -13,7 +13,7 @@ pub struct Properties {
     pub language_id: String,
     pub version: i32,
 
-    // use Vec<line<column>> store the content also preserve the order
+    // use byte vector store the source code
     pub source_code: Vec<Byte>,
     pub keywords: Vec<String>,
     pub ordered_scopes: Vec<Range>,
@@ -28,6 +28,7 @@ pub struct GlobalState {
 }
 
 impl GlobalState {
+    /// Create a new GlobalState
     pub fn new() -> Self {
         GlobalState {
             sources: HashMap::new(),
@@ -35,6 +36,12 @@ impl GlobalState {
         }
     }
 
+    /// Get the diagnostics of a given url
+    pub fn get_diagnostics(&self, uri: &lsp_types::Url) -> Option<Vec<Diagnostic>> {
+        self.diagnostics.get(uri).cloned()
+    }
+
+    /// Get a mutable reference to the ast
     pub fn get_mutable_tree(&mut self, url: &Url) -> Option<&mut Tree> {
         match self.sources.get_mut(url) {
             Some(properties) => Some(&mut properties.ast),
@@ -42,24 +49,28 @@ impl GlobalState {
         }
     }
 
+    /// Get the source code of a given url, return None if not found, byte vector otherwise
     pub fn get_source_code(&self, url: &Url) -> Option<Vec<Byte>> {
         self.sources
             .get(url)
             .map(|properties| properties.source_code.clone())
     }
 
+    /// Get the language_id of a given url, return None if not found, language_id otherwise
     pub fn get_language_id(&self, url: &Url) -> Option<String> {
         self.sources
             .get(url)
             .map(|properties| properties.language_id.to_string())
     }
 
+    /// Update the source code of a given url
     pub fn update_source_code(&mut self, url: &Url, new_source_code: Vec<Byte>) {
         if let Some(properties) = self.sources.get_mut(url) {
             properties.source_code = new_source_code;
         }
     }
 
+    /// Get node at a given position
     pub fn get_node_at_position(&self, url: &Url, position: Position) -> Option<Node> {
         let properties = self.sources.get(url)?;
         let node = properties.ast.root_node();
@@ -73,5 +84,15 @@ impl GlobalState {
                 column: position.character as usize,
             },
         )
+    }
+
+    /// Get document version of a given url, return 0 if not found, version otherwise
+    pub fn get_version(&self, uri: &lsp_types::Url) -> Option<i32> {
+        let source = self.sources.get(uri);
+        match source {
+            Some(source) => Some(source.version),
+            // we don't have a version, return 0
+            None => Some(0),
+        }
     }
 }
