@@ -22,7 +22,7 @@ jobs:
       - name: Install zip
         run: sudo apt-get install zip
       - name: Pack the artifacts
-        run: zip tsls-linux-x86_64.zip target/debug/tsls
+        run: zip target/debug/tsls-linux-x86_64.zip target/debug/tsls
       - uses: actions/upload-artifact@v2
         with:
           name: tsls-linux-x86_64
@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: cargo build --verbose
       - name: Pack the artifacts
-        run: zip tsls-macos-x86_64.zip target/debug/tsls
+        run: zip target/debug/tsls-macos-x86_64.zip target/debug/tsls
       - uses: actions/upload-artifact@v2
         with:
           name: tsls-macos-x86_64
