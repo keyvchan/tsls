@@ -6,7 +6,7 @@ pub fn publish_diagnostics(
     uri: lsp_types::Url,
     global_state: GlobalState,
 ) -> lsp_server::Notification {
-    let diagnostics = global_state.diagnostics.get(&uri).unwrap();
+    let diagnostics = global_state.get_diagnostics(&uri).unwrap_or_default();
 
     error!("publish_diagnostics: {:?}", diagnostics);
 

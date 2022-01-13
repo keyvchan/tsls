@@ -1,5 +1,5 @@
 use crate::global_state::GlobalState;
-use helper::operation::{get_parser, perform_edit};
+use helper::tree_mutator::{get_parser, perform_edit};
 use log::error;
 use lsp_types::{self, DidChangeTextDocumentParams};
 use tree_sitter::{InputEdit, Point};

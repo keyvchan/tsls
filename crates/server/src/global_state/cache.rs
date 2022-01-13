@@ -1,5 +1,5 @@
 use crate::global_state::{GlobalState, Properties};
-use log::{error, warn};
+use log::warn;
 use lsp_types::TextDocumentItem;
 use queries::{errors, highlight, locals};
 use tree_sitter::Tree;
@@ -34,15 +34,6 @@ impl GlobalState {
         let diagnostics = errors::build_diagnostics(&source_code, &tree.root_node());
 
         self.diagnostics.insert(source_code.uri, diagnostics);
-    }
-
-    pub fn get_version(&self, uri: &lsp_types::Url) -> Option<i32> {
-        let source = self.sources.get(uri);
-        match source {
-            Some(source) => Some(source.version),
-            // we don't have a version, return 0
-            None => Some(0),
-        }
     }
 
     pub fn update_cache(&mut self, source_code: TextDocumentItem, tree: &Tree) {

@@ -1,10 +1,11 @@
 use crate::global_state::GlobalState;
+use helper::tree_mutator::get_parser;
 use log::{debug, error};
 
 pub fn did_open(params: lsp_types::DidOpenTextDocumentParams, global_state: &mut GlobalState) {
     debug!("Received a DidOpenTextDocument: {:#?}", params);
 
-    let mut parser = match helper::operation::get_parser(params.text_document.language_id.clone()) {
+    let mut parser = match get_parser(params.text_document.language_id.clone()) {
         Some(parser) => parser,
         None => {
             error!("Failed to get parser");

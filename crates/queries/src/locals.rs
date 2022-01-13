@@ -1,8 +1,9 @@
-use crate::utils::{get_query_source, Symbol};
+use crate::utils::get_query_source;
 use crate::{capture_by_query_source, match_by_query_source};
 
 use std::collections::HashMap;
 
+use helper::types::Symbol;
 use lsp_types::CompletionItemKind;
 use tree_sitter::Node;
 
