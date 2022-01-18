@@ -1,6 +1,6 @@
 use lsp_types::{
-    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, ServerCapabilities,
-    TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
+    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, ReferencesOptions,
+    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
     WorkDoneProgressOptions,
 };
 
@@ -27,7 +27,7 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
         }),
         declaration_provider: Some(DeclarationCapability::Simple(true)),
         definition_provider: Some(OneOf::Left(true)),
-        references_provider: None,
+        references_provider: Some(OneOf::Left(true)),
         hover_provider: None,
         signature_help_provider: None,
         type_definition_provider: None,

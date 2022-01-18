@@ -167,3 +167,21 @@ pub mod types {
         }
     }
 }
+
+pub mod tree_walker {
+
+    use lsp_types::Position;
+    use tree_sitter::{Node, Tree};
+
+    use crate::convert::lsp_position_to_ts_point;
+
+    pub fn get_named_node_by_position(tree: &Tree, position: Position) -> Option<Node> {
+        let point = lsp_position_to_ts_point(&position);
+
+        let root_node = tree.root_node();
+        let tree_cursor = root_node.walk();
+        tree_cursor
+            .node()
+            .named_descendant_for_point_range(point, point)
+    }
+}
