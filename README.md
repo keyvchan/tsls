@@ -7,6 +7,7 @@
 ## Features
 
 - [x] Go To Definition
+- [x] Find References
 - [x] Basic Diagnostics
 - [x] AST based Completion with Scope.
 - [x] Incremental Document Syncing

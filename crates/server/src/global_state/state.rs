@@ -48,6 +48,14 @@ impl GlobalState {
             None => None,
         }
     }
+    ///
+    /// Get a mutable reference to the ast
+    pub fn get_tree(&self, url: &Url) -> Option<&Tree> {
+        match self.sources.get(url) {
+            Some(properties) => Some(&properties.ast),
+            None => None,
+        }
+    }
 
     /// Get the source code of a given url, return None if not found, byte vector otherwise
     pub fn get_source_code(&self, url: &Url) -> Option<Vec<Byte>> {
