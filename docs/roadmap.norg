@@ -35,6 +35,8 @@
   - [x] Basic Diagnostics
   - [x] Incremental document syncing
 
+  - [x] Smart Rename
+
   - [ ] Samatics highlighting
   - [ ] Code folding
   - [ ] Code format
