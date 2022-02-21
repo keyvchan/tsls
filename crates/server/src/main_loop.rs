@@ -76,6 +76,18 @@ pub fn main_loop(
                         };
                     }
 
+                    lsp_types::request::Rename::METHOD => {
+                        let res: Result<(RequestId, lsp_types::RenameParams), lsp_server::Request> =
+                            req.extract(lsp_types::request::Rename::METHOD);
+                        match res {
+                            Ok((id, params)) => {
+                                let resp = handler::rename(id, params, global_state.get_snapshot());
+                                connection.sender.send(Message::Response(resp))?;
+                                continue;
+                            }
+                            Err(req) => req,
+                        };
+                    }
                     _ => {
                         warn!("unhandled request: {:#?}", req);
                     }

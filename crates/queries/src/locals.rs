@@ -4,6 +4,7 @@ use crate::{capture_by_query_source, match_by_query_source};
 use std::collections::HashMap;
 
 use helper::types::Symbol;
+use log::error;
 use lsp_types::CompletionItemKind;
 use tree_sitter::Node;
 
@@ -50,6 +51,7 @@ fn build_definitions_and_identifiers(
     node: Node,
     scopes: &[tree_sitter::Range],
 ) -> HashMap<String, Vec<Symbol>> {
+    error!("build_definitions_and_identifiers: {:?}", source_code);
     let query_source = match source_code.language_id.as_str() {
         "c" => get_query_source("c", "locals").unwrap(),
         _ => r#""#.to_string(),
@@ -64,6 +66,7 @@ fn build_definitions_and_identifiers(
     // use name + smallest_scope_id as key
     for (variable_type, node) in result {
         // for (variable_type, node) in item {
+
         let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
         match variable_type.as_str() {
             DIFINITION_VAR | DIFINITION_FUNCTION => {
