@@ -13,10 +13,15 @@
 - [x] Incremental Document Syncing
 - [x] Smart Rename In single file
 
+## Future Plans
+
+- Generalize project layout abstraction, enable project wised analysis.
+- Add support for more languages.
+- Out-of-box experience.
+
 ## Limitations
 
 - Single file only
-- Use queries from [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter/tree/master/queries)(_it's hard-coded :(_ ). so it must be preinstalled by `packer.nvim` for now.
 
 ## Build
 
@@ -32,3 +37,5 @@
 - [semantic](https://github.com/github/semantic)
 - [bash-language-server](https://github.com/bash-lsp/bash-language-server)
 - [rust-analyzer](https://github/github.com/rust-analyzer/rust-analyzer)
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
+- [nvim-treesitter-refactor](https://github.com/nvim-treesitter/nvim-treesitter-refactor)

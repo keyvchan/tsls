@@ -1,7 +1,6 @@
+pub use embed::get_query_source;
 use helper::convert::ts_point_to_lsp_position;
 use lsp_types::Position;
-use std::fs::File;
-use std::io::prelude::*;
 use tree_sitter::{Node, Range};
 
 pub fn get_smallest_scope_id_by_position(p: &Position, scopes: &[Range]) -> usize {
@@ -36,17 +35,28 @@ pub fn get_smallest_scope_id_by_node(node: &Node, scopes: &[Range]) -> usize {
     positon
 }
 
-pub fn get_query_source(language_id: &str, source_type: &str) -> Option<String> {
-    // TODO: Hard-coded path for now
+pub mod embed {
+    use log::debug;
+    // embed
+    use rust_embed::RustEmbed;
 
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".local/share/nvim/site/pack/packer/opt/nvim-treesitter/queries/")
-        .join(language_id)
-        .join(source_type.to_owned() + ".scm");
+    #[derive(RustEmbed)]
+    #[folder = "../../queries/nvim-treesitter/queries"]
+    #[prefix = "basic/"]
+    struct Asset;
 
-    let mut file = File::open(path).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    Some(contents)
+    /// Get queries in embeded files
+    pub fn get_query_source(language_id: &str, source_type: &str) -> Option<String> {
+        let path = std::path::Path::new("basic/")
+            .join(language_id)
+            .join(source_type.to_owned() + ".scm");
+        debug!(
+            "get_query_source: language_id: {}, source_type: {}, path: {:?}",
+            language_id, source_type, path
+        );
+
+        let file = Asset::get(path.to_str().unwrap()).unwrap();
+        let contents = String::from_utf8(file.data.as_ref().to_vec()).unwrap();
+        Some(contents)
+    }
 }
