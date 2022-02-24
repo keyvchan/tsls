@@ -116,8 +116,17 @@ pub mod tree_mutator {
         // Matching the language for all kind of parser, we read the config then determ which language
         // should be enabled
         let language: Language = match language_id.as_str() {
+            // On crates.io
             "c" => tree_sitter_c::language(),
             "cpp" => tree_sitter_cpp::language(),
+            "rust" => tree_sitter_rust::language(),
+            "python" => tree_sitter_python::language(),
+            "javascript" => tree_sitter_javascript::language(),
+            "typescript" => tree_sitter_typescript::language_typescript(),
+            "go" => tree_sitter_go::language(),
+            "cuda" => tree_sitter_cuda::language(),
+            "kotlin" => tree_sitter_kotlin::language(),
+            "glsl" => tree_sitter_glsl::language(),
             _ => {
                 error!("Language not supported");
                 // Set fallback to plain text
