@@ -19,6 +19,10 @@
 - Add support for more languages.
 - Out-of-box experience.
 
+## Support Languages
+
+For supported languages, check out [Support Matrix](https://github.com/keyvchan/tsls/wiki/Support-Matrix)
+
 ## Limitations
 
 - Single file only
