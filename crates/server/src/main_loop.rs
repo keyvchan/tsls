@@ -88,6 +88,24 @@ pub fn main_loop(
                             Err(req) => req,
                         };
                     }
+                    lsp_types::request::CallHierarchyPrepare::METHOD => {
+                        let res: Result<
+                            (RequestId, lsp_types::CallHierarchyPrepareParams),
+                            lsp_server::Request,
+                        > = req.extract(lsp_types::request::Rename::METHOD);
+                        match res {
+                            Ok((id, params)) => {
+                                let resp = handler::call_hierarchy(
+                                    id,
+                                    params,
+                                    global_state.get_snapshot(),
+                                );
+                                connection.sender.send(Message::Response(resp))?;
+                                continue;
+                            }
+                            Err(req) => req,
+                        };
+                    }
                     _ => {
                         warn!("unhandled request: {:#?}", req);
                     }

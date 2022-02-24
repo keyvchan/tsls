@@ -1,3 +1,4 @@
+mod call_hierarchy;
 mod completion;
 mod did_change;
 mod did_close;
@@ -7,6 +8,7 @@ mod publish_diagnostics;
 mod references;
 mod rename;
 
+pub use self::call_hierarchy::call_hierarchy;
 pub use self::completion::completion;
 pub use self::did_change::did_change;
 pub use self::did_close::did_close;
