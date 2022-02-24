@@ -1,7 +1,7 @@
 use lsp_types::{
-    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, ReferencesOptions,
-    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
-    WorkDoneProgressOptions,
+    CallHierarchyServerCapability, ClientCapabilities, CompletionOptions, DeclarationCapability,
+    OneOf, ReferencesOptions, ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
+    TextDocumentSyncOptions, WorkDoneProgressOptions,
 };
 
 /// The capabilities provided by the client (editor)
@@ -29,6 +29,7 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
         definition_provider: Some(OneOf::Left(true)),
         references_provider: Some(OneOf::Left(true)),
         rename_provider: Some(OneOf::Left(true)),
+        call_hierarchy_provider: Some(CallHierarchyServerCapability::Simple(true)),
         hover_provider: None,
         signature_help_provider: None,
         type_definition_provider: None,
@@ -48,7 +49,6 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
         color_provider: None,
         execute_command_provider: None,
         workspace: None,
-        call_hierarchy_provider: None,
         semantic_tokens_provider: None,
         moniker_provider: None,
         experimental: None,
