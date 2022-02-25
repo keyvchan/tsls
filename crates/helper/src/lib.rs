@@ -149,15 +149,21 @@ pub mod tree_mutator {
 
 /// Module types contains useful types for representing the source code.
 pub mod types {
-    use lsp_types::CompletionItemKind;
+    use lsp_types::{CompletionItemKind, SymbolKind};
     use tree_sitter::{Point, Range};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct Symbol {
         pub name: String,
         pub completion_kind: Vec<CompletionItemKind>,
+        pub symbol_kind: Vec<SymbolKind>,
         pub location: Range,
+
+        /// scope form largest to smallest
         pub belongs_to: Vec<Range>,
+
+        /// only class struct has children
+        pub children: Option<Vec<Symbol>>,
     }
 
     impl Symbol {
@@ -165,6 +171,7 @@ pub mod types {
             Self {
                 name: String::new(),
                 completion_kind: vec![CompletionItemKind::TEXT],
+                symbol_kind: vec![SymbolKind::STRING],
                 location: Range {
                     start_byte: 0,
                     end_byte: 0,
@@ -172,7 +179,13 @@ pub mod types {
                     end_point: Point { row: 0, column: 0 },
                 },
                 belongs_to: vec![],
+                children: None,
             }
+        }
+
+        /// Get a reference to the symbol's belongs to.
+        pub fn belongs_to(&self) -> &[Range] {
+            self.belongs_to.as_ref()
         }
     }
 }

@@ -4,8 +4,8 @@ use crate::{capture_by_query_source, match_by_query_source};
 use std::collections::HashMap;
 
 use helper::types::Symbol;
-use log::error;
-use lsp_types::CompletionItemKind;
+use log::{debug, error};
+use lsp_types::{CompletionItemKind, SymbolKind};
 use tree_sitter::Node;
 
 use crate::utils::get_smallest_scope_id_by_node;
@@ -51,7 +51,7 @@ fn build_definitions_and_identifiers(
     node: Node,
     scopes: &[tree_sitter::Range],
 ) -> HashMap<String, Vec<Symbol>> {
-    error!("build_definitions_and_identifiers: {:?}", source_code);
+    debug!("build_definitions_and_identifiers: {:?}", source_code);
     let query_source = match source_code.language_id.as_str() {
         "c" => get_query_source("c", "locals").unwrap(),
         _ => r#""#.to_string(),
@@ -89,8 +89,10 @@ fn build_definitions_and_identifiers(
                 let symbol = Symbol {
                     name: variable_name.to_owned(),
                     completion_kind: vec![CompletionItemKind::TEXT],
+                    symbol_kind: vec![SymbolKind::STRING],
                     location: node.range(),
                     belongs_to,
+                    children: None,
                 };
 
                 let vector = match definitions.get_mut(&key) {
