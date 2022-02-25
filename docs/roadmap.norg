@@ -17,31 +17,29 @@
   - [x] Log
   - [?] Use `macro` to simplify code
   - [ ] Performance
-
   - [x] Find difinition and reference
   -- [x] query local definitions
   -- [x] query local references
   -- [x] definition loopup table
-
   - [x] Goto difinition
   -- [x] Scope support
   -- [x] Jump to definition
-  - [ ] Find References in single document
-  - [=] Ast based Basic completion
+  - [x] Find References in single document
+  - [-] Ast based Basic completion
   -- [x] `INVOKED`
   -- [ ] `TRIGGER_CHARACTER`
+  -- [ ] nested structure support
   -- [x] scope support
   -- [x] keywords completion
   - [x] Basic Diagnostics
   - [x] Incremental document syncing
-
   - [x] Smart Rename
-
+  - [x] Document symbols
+  -- [ ] Outline support
   - [ ] Samatics highlighting
   - [ ] Code folding
   - [ ] Code format
   - [ ] Find Implementations
-  - [ ] Document symbols
   - [ ] Hover
   - [ ] Signature help
   - [ ] Code actions
