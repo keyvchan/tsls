@@ -1,4 +1,5 @@
-use lsp_types::{CompletionItemKind, TextDocumentItem};
+use log::{debug, warn};
+use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
 use std::collections::HashMap;
 use tree_sitter::{Language, Parser, Range, Tree};
 
@@ -21,15 +22,25 @@ pub fn update_identifiers_kind(
     for (capture_name, node) in captures {
         let smallest_scope_id = get_smallest_scope_id_by_node(&node, scopes);
         let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
-        let completion_item_kind = get_completion_kind(capture_name);
-        let belongs_to = scopes[0..smallest_scope_id].to_owned();
+        let (completion_item_kind, symbol_kind) = get_kind(capture_name);
+
+        // TODO: Better way to handle this.
+        let mut belongs_to = scopes[0..smallest_scope_id].to_owned();
+        if belongs_to.is_empty() {
+            warn!("{} is not in any scope", variable_name);
+
+            // if variable not in any scope, we assume it in the maxium scope
+            belongs_to = vec![scopes[0]];
+        }
 
         if visited_names.contains(&(smallest_scope_id, variable_name.to_string())) {
             // insert completion_kind
+            // if it already exist, update it
             let symbol = result
                 .get_mut(&(smallest_scope_id, variable_name.to_string()))
                 .unwrap();
             symbol.completion_kind.push(completion_item_kind);
+            symbol.symbol_kind.push(symbol_kind);
         } else {
             // insert into visited_names
             visited_names.push((smallest_scope_id, variable_name.to_string()));
@@ -37,8 +48,11 @@ pub fn update_identifiers_kind(
             let symbol = Symbol {
                 name: variable_name.to_string(),
                 completion_kind: vec![completion_item_kind],
+                symbol_kind: vec![symbol_kind],
                 location: node.range(),
                 belongs_to,
+                // TODO: Add support for nested data structures
+                children: None,
             };
 
             result.insert((smallest_scope_id, variable_name.to_string()), symbol);
@@ -51,40 +65,46 @@ pub fn update_identifiers_kind(
     }
 }
 
-fn get_completion_kind(capture_name: String) -> CompletionItemKind {
+/// Get completion_kind and symbol_kind
+fn get_kind(capture_name: String) -> (CompletionItemKind, SymbolKind) {
     match capture_name.as_str() {
-        "variable" => CompletionItemKind::VARIABLE,
-        "function" | "function.macro" => CompletionItemKind::FUNCTION,
-        "type" => CompletionItemKind::TYPE_PARAMETER,
-        "label" => CompletionItemKind::TEXT,
-        "module" => CompletionItemKind::MODULE,
-        "keyword" | "repeat" | "keyword.operator" | "keyword.return" => CompletionItemKind::KEYWORD,
-        "struct" => CompletionItemKind::STRUCT,
-        "enum" => CompletionItemKind::ENUM,
-        "number" | "character" | "boolean" => CompletionItemKind::VALUE,
-        "interface" => CompletionItemKind::INTERFACE,
-        "constant" | "constant.builtin" => CompletionItemKind::CONSTANT,
-        "string" | "string.escape" => CompletionItemKind::TEXT,
-        "include" => CompletionItemKind::MODULE,
-        "parameter" => CompletionItemKind::VARIABLE,
-        "property" => CompletionItemKind::PROPERTY,
-        "method" => CompletionItemKind::METHOD,
-        "constructor" => CompletionItemKind::CONSTRUCTOR,
-        "field" => CompletionItemKind::FIELD,
-        "file" => CompletionItemKind::FILE,
-        "package" => CompletionItemKind::MODULE,
-        "namespace" => CompletionItemKind::MODULE,
-        "class" => CompletionItemKind::CLASS,
-        "enum_member" => CompletionItemKind::ENUM_MEMBER,
-        "getter" => CompletionItemKind::PROPERTY,
-        "setter" => CompletionItemKind::PROPERTY,
+        "variable" => (CompletionItemKind::VARIABLE, SymbolKind::VARIABLE),
+        "function" | "function.macro" => (CompletionItemKind::FUNCTION, SymbolKind::FUNCTION),
+        "type" => (
+            CompletionItemKind::TYPE_PARAMETER,
+            SymbolKind::TYPE_PARAMETER,
+        ),
+        "label" => (CompletionItemKind::TEXT, SymbolKind::STRING),
+        "module" => (CompletionItemKind::MODULE, SymbolKind::MODULE),
+        "keyword" | "repeat" | "keyword.operator" | "keyword.return" => {
+            (CompletionItemKind::KEYWORD, SymbolKind::KEY)
+        }
+        "struct" => (CompletionItemKind::STRUCT, SymbolKind::STRUCT),
+        "enum" => (CompletionItemKind::ENUM, SymbolKind::ENUM),
+        "number" | "character" | "boolean" => (CompletionItemKind::VALUE, SymbolKind::NUMBER),
+        "interface" => (CompletionItemKind::INTERFACE, SymbolKind::INTERFACE),
+        "constant" | "constant.builtin" => (CompletionItemKind::CONSTANT, SymbolKind::CONSTANT),
+        "string" | "string.escape" => (CompletionItemKind::TEXT, SymbolKind::STRING),
+        "include" => (CompletionItemKind::MODULE, SymbolKind::MODULE),
+        "parameter" => (CompletionItemKind::VARIABLE, SymbolKind::VARIABLE),
+        "property" => (CompletionItemKind::PROPERTY, SymbolKind::PROPERTY),
+        "method" => (CompletionItemKind::METHOD, SymbolKind::METHOD),
+        "constructor" => (CompletionItemKind::CONSTRUCTOR, SymbolKind::CONSTRUCTOR),
+        "field" => (CompletionItemKind::FIELD, SymbolKind::FIELD),
+        "file" => (CompletionItemKind::FILE, SymbolKind::FILE),
+        "package" => (CompletionItemKind::MODULE, SymbolKind::MODULE),
+        "namespace" => (CompletionItemKind::MODULE, SymbolKind::MODULE),
+        "class" => (CompletionItemKind::CLASS, SymbolKind::CLASS),
+        "enum_member" => (CompletionItemKind::ENUM_MEMBER, SymbolKind::ENUM_MEMBER),
+        "getter" => (CompletionItemKind::PROPERTY, SymbolKind::PROPERTY),
+        "setter" => (CompletionItemKind::PROPERTY, SymbolKind::PROPERTY),
         "operator"
         | "punctuation"
         | "punctuation.bracket"
         | "punctuation.delimiter"
         | "punctuation.special"
-        | "conditional" => CompletionItemKind::OPERATOR,
-        _ => CompletionItemKind::TEXT,
+        | "conditional" => (CompletionItemKind::OPERATOR, SymbolKind::OPERATOR),
+        _ => (CompletionItemKind::TEXT, SymbolKind::STRING),
     }
 }
 
