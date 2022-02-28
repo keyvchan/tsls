@@ -38,7 +38,17 @@ pub fn goto_definition(
             let variable_name = node.utf8_text(source_code).unwrap().to_owned();
 
             let key = format!("{}:{}", variable_name, smallest_scope_id);
-            let definitions = loopup_table.get(&key).unwrap();
+            let definitions = match loopup_table.get(&key) {
+                Some(definitions) => definitions,
+                None => {
+                    error!("could not find definition for {}", key);
+                    return lsp_server::Response::new_err(
+                        id,
+                        lsp_types::error_codes::REQUEST_CANCELLED as i32,
+                        "could not find definition for this variable".to_string(),
+                    );
+                }
+            };
 
             let range = &definitions[0];
             let start = lsp_types::Position {
@@ -76,9 +86,5 @@ pub fn goto_definition(
 
     let result = Some(lsp_types::GotoDefinitionResponse::Array(location));
     let result = serde_json::to_value(&result).unwrap();
-    lsp_server::Response {
-        id,
-        result: Some(result),
-        error: None,
-    }
+    lsp_server::Response::new_ok(id, result)
 }

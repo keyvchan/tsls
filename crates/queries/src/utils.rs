@@ -41,7 +41,7 @@ pub mod embed {
     use rust_embed::RustEmbed;
 
     #[derive(RustEmbed)]
-    #[folder = "../../queries/nvim-treesitter/queries"]
+    #[folder = "../../queries"]
     #[prefix = "basic/"]
     struct Asset;
 
