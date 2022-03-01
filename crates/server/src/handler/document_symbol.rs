@@ -33,7 +33,7 @@ pub fn document_symbol(
     for (scope_id, symbols) in identifiers {
         #[allow(deprecated)]
         for symbol in symbols {
-            debug!("symbol: {:?}, {:?}", symbol.name, symbol.belongs_to());
+            // debug!("symbol: {:?}, {:?}", symbol.name, symbol.belongs_to());
             document_symbols.push(DocumentSymbol {
                 name: symbol.name.clone(),
                 detail: None,
@@ -51,7 +51,7 @@ pub fn document_symbol(
         }
     }
 
-    debug!("Document symbols: {:?}", document_symbols);
+    // debug!("Document symbols: {:?}", document_symbols);
 
     // Only can go to current files
     let result = serde_json::to_value(&document_symbols).unwrap();

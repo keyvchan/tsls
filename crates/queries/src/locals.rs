@@ -117,6 +117,24 @@ fn build_definitions_and_identifiers(
         }
     }
 
+    // TODO: query struct/class fields, add it to children
+    let query_source = {
+        if let Some(x) = get_query_source(source_code.language_id.as_str(), "children") {
+            x
+        } else {
+            "".to_string()
+        }
+    };
+    let result = capture_by_query_source(
+        source_code.text.clone(),
+        node.to_owned(),
+        query_source.as_str(),
+    );
+
+    for (capture, node) in result {
+        error!("{:#?}, {:#?}", capture, &node);
+    }
+
     definitions
 }
 

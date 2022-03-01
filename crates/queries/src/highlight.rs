@@ -22,17 +22,13 @@ pub fn update_identifiers_kind(
     for (capture_name, node) in captures {
         let smallest_scope_id = get_smallest_scope_id_by_node(&node, scopes);
         let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
-        let completion_item_kind = get_completion_kind(capture_name);
-        let belongs_to_scopes = scopes[0..smallest_scope_id].to_owned();
         let (completion_item_kind, symbol_kind) = get_kind(capture_name);
 
         // TODO: Better way to handle this.
-        let mut belongs_to = scopes[0..smallest_scope_id].to_owned();
-        if belongs_to.is_empty() {
-            warn!("{} is not in any scope", variable_name);
-
+        let mut belongs_to_scopes = scopes[0..smallest_scope_id].to_owned();
+        if smallest_scope_id == 0 {
             // if variable not in any scope, we assume it in the maxium scope
-            belongs_to = vec![scopes[0]];
+            belongs_to_scopes = vec![scopes[0]];
         }
 
         if visited_names.contains(&(smallest_scope_id, variable_name.to_string())) {

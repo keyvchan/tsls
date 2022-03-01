@@ -183,7 +183,7 @@ pub mod types {
 
         /// Get a reference to the symbol's belongs to.
         pub fn belongs_to(&self) -> &[Range] {
-            self.belongs_to.as_ref()
+            self.belongs_to_scopes.as_ref()
         }
     }
 }

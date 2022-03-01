@@ -91,7 +91,8 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
             debug!("Deletion");
             // remove this element, since the end byte is exclusive, we use end_byte - 1 in here.
             edit.old_end_byte = if end_byte > edit.old_end_byte {
-                end_byte
+                // FIX: fixed a crash bug when deleting a character
+                end_byte - 1
             } else {
                 edit.old_end_byte
             };
