@@ -14,7 +14,7 @@ lsp-server = "0.5.2"
 serde_json = "1.0.34"
 serde = { version = "1.0.83", features = ["derive"] }
 tracing = "0.1"
-tracing-subscriber = "0.2.0"
+tracing-subscriber = "0.3.9"
 libloading = "0.7.2"
 
 queries = { path = "../queries", version = "0.1.0" }
