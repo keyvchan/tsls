@@ -157,7 +157,10 @@ pub mod types {
         pub name: String,
         pub completion_kind: Vec<CompletionItemKind>,
         pub location: Range,
-        pub belongs_to: Vec<Range>,
+
+        // children could be None or multiple symbols
+        pub children: Option<Vec<Symbol>>,
+        pub belongs_to_scopes: Vec<Range>,
     }
 
     impl Symbol {
@@ -171,7 +174,8 @@ pub mod types {
                     start_point: Point { row: 0, column: 0 },
                     end_point: Point { row: 0, column: 0 },
                 },
-                belongs_to: vec![],
+                children: None,
+                belongs_to_scopes: vec![],
             }
         }
     }

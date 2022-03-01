@@ -55,8 +55,13 @@ pub mod embed {
             language_id, source_type, path
         );
 
-        let file = Asset::get(path.to_str().unwrap()).unwrap();
-        let contents = String::from_utf8(file.data.as_ref().to_vec()).unwrap();
+        // TODO: Error handling, if file not found, return None
+        let contents = String::from_utf8(if let Some(file) = Asset::get(path.to_str().unwrap()) {
+            file.data.as_ref().to_vec()
+        } else {
+            return None;
+        })
+        .unwrap();
         Some(contents)
     }
 }

@@ -22,7 +22,7 @@ pub fn update_identifiers_kind(
         let smallest_scope_id = get_smallest_scope_id_by_node(&node, scopes);
         let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
         let completion_item_kind = get_completion_kind(capture_name);
-        let belongs_to = scopes[0..smallest_scope_id].to_owned();
+        let belongs_to_scopes = scopes[0..smallest_scope_id].to_owned();
 
         if visited_names.contains(&(smallest_scope_id, variable_name.to_string())) {
             // insert completion_kind
@@ -38,7 +38,8 @@ pub fn update_identifiers_kind(
                 name: variable_name.to_string(),
                 completion_kind: vec![completion_item_kind],
                 location: node.range(),
-                belongs_to,
+                children: None,
+                belongs_to_scopes,
             };
 
             result.insert((smallest_scope_id, variable_name.to_string()), symbol);
