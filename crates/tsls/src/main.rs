@@ -2,6 +2,7 @@
 mod cli;
 mod config;
 
+use flexi_logger::{FileSpec, Logger, WriteMode};
 use log::warn;
 use server::server_mode;
 
@@ -21,7 +22,11 @@ struct Args {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // initial the logger
-    flexi_logger::Logger::try_with_env_or_str("debug")?.start()?;
+    // flexi_logger::Logger::try_with_env_or_str("debug")?.start()?;
+    let _logger = Logger::try_with_str("debug")?
+        .log_to_file(FileSpec::default())
+        .write_mode(WriteMode::BufferAndFlush)
+        .start()?;
     // .start()
     // .unwrap();
     warn!("Logger initialized");
