@@ -4,7 +4,8 @@ use crate::{capture_by_query_source, match_by_query_source};
 use std::collections::HashMap;
 
 use helper::types::Symbol;
-use log::{debug, error};
+
+use log::error;
 use lsp_types::{CompletionItemKind, SymbolKind};
 use tree_sitter::Node;
 
