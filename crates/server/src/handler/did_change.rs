@@ -8,6 +8,17 @@ use lsp_types::{self, DidChangeTextDocumentParams};
 use tree_sitter::{InputEdit, Point};
 
 pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut GlobalState) {
+    let language_id = global_state
+        .get_language_id(&params.text_document.uri)
+        .unwrap_or_default();
+    let mut parser = match get_parser(language_id.clone()) {
+        Some(parser) => parser,
+        None => {
+            error!("No parser found for language");
+            return;
+        }
+    };
+
     // Check version
     if params.text_document.version
         <= global_state
@@ -29,6 +40,8 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         .unwrap_or_else(|| "".as_bytes().to_vec());
     let mut start_byte;
     let mut end_byte;
+    let mut start_position;
+    let mut end_position;
 
     let mut edit = InputEdit {
         start_byte: 0,
@@ -39,11 +52,18 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         new_end_position: Point { row: 0, column: 0 },
     };
 
+    // copy to a new tree
+    let mut old_tree = match global_state.get_tree(&params.text_document.uri) {
+        Some(tree) => tree.clone(),
+        None => return,
+    };
+
     // Update the edit object
     for change in params.content_changes {
         let range = change.range.unwrap_or_default();
         let content = change.text;
 
+        // calculate the start and end byte
         start_byte = position_to_offset(
             &source_code,
             Point::new(range.start.line as usize, range.start.character as usize),
@@ -53,70 +73,58 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
             Point::new(range.end.line as usize, range.end.character as usize),
         );
 
-        // check start_byte < 0
+        // calculate the start_point and end_point
+        start_position = Point::new(range.start.line as usize, range.start.character as usize);
+        end_position = Point::new(range.end.line as usize, range.end.character as usize);
+
+        error!("start_byte: {}, end_byte: {}", start_byte, end_byte);
+
+        // start_position just needs to set to the start
+        // if start_byte < 0, start_byte = 0
         edit.start_byte = if start_byte < edit.start_byte {
+            usize::MIN
+        } else {
             start_byte
-        } else {
-            edit.start_byte
-        };
-        edit.new_end_byte = if end_byte > edit.new_end_byte {
-            end_byte
-        } else {
-            edit.new_end_byte
         };
 
-        edit.start_position =
-            if Point::new(range.start.line as usize, range.start.character as usize)
-                < edit.start_position
+        edit.start_position = if (start_position) < edit.start_position {
+            edit.start_position
+        } else {
             {
-                Point::new(range.start.line as usize, range.start.character as usize)
-            } else {
-                edit.start_position
-            };
-        edit.new_end_position = if Point::new(range.end.line as usize, range.end.character as usize)
-            > edit.new_end_position
-        {
-            Point::new(range.end.line as usize, range.end.character as usize)
-        } else {
-            edit.new_end_position
+                let row = range.start.line as usize;
+                let column = range.start.character as usize;
+                Point { row, column }
+            }
         };
 
-        // old_end_byte set to start_byte stands for no deletion
-        edit.old_end_byte = start_byte;
-        edit.old_end_position =
-            Point::new(range.start.line as usize, range.start.character as usize);
-
-        // It's a deletion
+        // Deletion/Modification
+        // Content is is_empty stands for deletion
+        // if content is not empty, it is modification
         if content.is_empty() {
-            debug!("Deletion");
-            // remove this element, since the end byte is exclusive, we use end_byte - 1 in here.
-            edit.old_end_byte = if end_byte > edit.old_end_byte {
-                end_byte
-            } else {
-                edit.old_end_byte
-            };
-            edit.old_end_position =
-                if Point::new(range.end.line as usize, range.end.character as usize)
-                    > edit.old_end_position
-                {
-                    Point::new(range.end.line as usize, range.end.character as usize)
-                } else {
-                    edit.old_end_position
-                };
+            // Deletion
+            edit.old_end_byte = end_byte;
+            edit.new_end_byte = start_byte;
 
-            // delete the content
+            edit.old_end_position = end_position;
+            edit.new_end_position = start_position;
+
+            // edit the source_code
             source_code.drain(start_byte..end_byte);
         } else {
-            debug!("Modification");
+            // Modification
+            edit.old_end_byte = start_byte;
+            edit.new_end_byte = end_byte;
 
-            edit.new_end_byte = if end_byte > edit.new_end_byte {
-                end_byte
-            } else {
-                edit.new_end_byte - 1
-            };
-
+            edit.new_end_position = start_position;
+            edit.old_end_position = end_position;
+            // edit the source_code
             source_code.splice(start_byte..end_byte, content.as_bytes().to_vec());
         }
+
+        // fixed: index out of range on symbol modified
+        error!("{:#?}", edit);
+        // edit tree each rounds
+        perform_edit(&mut old_tree, &edit);
     }
 
     // Now, we get the final source code
@@ -128,26 +136,9 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
 
     // update cache
     global_state.update_source_code(&params.text_document.uri, source_code.clone());
-    let language_id = global_state
-        .get_language_id(&params.text_document.uri)
-        .unwrap_or_default();
-    let mut parser = match get_parser(language_id.clone()) {
-        Some(parser) => parser,
-        None => {
-            error!("No parser found for language");
-            return;
-        }
-    };
 
-    let old_tree = match global_state.get_mutable_tree(&params.text_document.uri) {
-        Some(tree) => tree,
-        None => return,
-    };
-
-    // fixed: index out of range on symbol modified
-    perform_edit(old_tree, &edit);
-    //
-    let new_tree = match parser.parse(source_code.clone(), Some(old_tree)) {
+    // Use final source code and final tree to generate new AST
+    let new_tree = match parser.parse(source_code.clone(), Some(&old_tree)) {
         Some(tree) => tree,
         None => return,
     };

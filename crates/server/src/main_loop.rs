@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use log::{debug, error, warn};
 
 use lsp_types::{notification::Notification, request::Request as rr, InitializeParams};
 
@@ -86,6 +86,27 @@ pub fn main_loop(
                                 continue;
                             }
                             Err(req) => req,
+                        };
+                    }
+                    lsp_types::request::DocumentSymbolRequest::METHOD => {
+                        let res: Result<
+                            (RequestId, lsp_types::DocumentSymbolParams),
+                            lsp_server::Request,
+                        > = req.extract(lsp_types::request::DocumentSymbolRequest::METHOD);
+                        match res {
+                            Ok((id, params)) => {
+                                let resp = handler::document_symbol(
+                                    id,
+                                    params,
+                                    global_state.get_snapshot(),
+                                );
+                                connection.sender.send(Message::Response(resp))?;
+                                continue;
+                            }
+                            Err(req) => {
+                                error!("error: {:#?}", req);
+                                req
+                            }
                         };
                     }
                     _ => {

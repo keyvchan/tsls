@@ -21,13 +21,6 @@
   (enumerator_list
     (enumerator name: (identifier) @definition.var)))
 
-;; Type / Struct / Enum
-(field_declaration
-  declarator: (field_identifier) @definition.field)
-(type_definition
-  declarator: (type_identifier) @definition.type)
-(struct_specifier
-  name: (type_identifier) @definition.type)
 
 ;; goto
 (labeled_statement (statement_identifier) @definition)

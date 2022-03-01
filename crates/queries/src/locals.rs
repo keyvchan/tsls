@@ -4,8 +4,8 @@ use crate::{capture_by_query_source, match_by_query_source};
 use std::collections::HashMap;
 
 use helper::types::Symbol;
-use log::error;
-use lsp_types::CompletionItemKind;
+use log::{debug, error};
+use lsp_types::{CompletionItemKind, SymbolKind};
 use tree_sitter::Node;
 
 use crate::utils::get_smallest_scope_id_by_node;
@@ -95,6 +95,7 @@ fn build_definitions_and_identifiers(
                 let symbol = Symbol {
                     name: variable_name.to_owned(),
                     completion_kind: vec![CompletionItemKind::TEXT],
+                    symbol_kind: vec![SymbolKind::STRING],
                     location: node.range(),
                     children: None,
                     belongs_to_scopes,
@@ -114,6 +115,24 @@ fn build_definitions_and_identifiers(
                 // ignore
             }
         }
+    }
+
+    // TODO: query struct/class fields, add it to children
+    let query_source = {
+        if let Some(x) = get_query_source(source_code.language_id.as_str(), "children") {
+            x
+        } else {
+            "".to_string()
+        }
+    };
+    let result = capture_by_query_source(
+        source_code.text.clone(),
+        node.to_owned(),
+        query_source.as_str(),
+    );
+
+    for (capture, node) in result {
+        error!("{:#?}, {:#?}", capture, &node);
     }
 
     definitions
