@@ -7,7 +7,7 @@ use lsp_types::{
 use queries::utils::get_smallest_scope_id_by_position;
 
 pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -> Response {
-    debug!("got completion request #{}: {:#?}", id, params);
+    debug!("got completion request #{}: {:?}", id, params);
 
     // 1. we check the context
     let context = params.context.unwrap_or(lsp_types::CompletionContext {
@@ -93,6 +93,6 @@ pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -
         result: Some(result),
         error: None,
     };
-    debug!("send completion response {:#?}", resp);
+    debug!("send completion response {:?}", resp);
     resp
 }

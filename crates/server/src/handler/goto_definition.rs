@@ -7,7 +7,7 @@ pub fn goto_definition(
     params: lsp_types::GotoDefinitionParams,
     global_state: GlobalState,
 ) -> lsp_server::Response {
-    debug!("got gotoDefinition request #{}: {:#?}", id, params);
+    debug!("got gotoDefinition request #{}: {:?}", id, params);
     let properties = global_state
         .sources
         .get(&params.text_document_position_params.text_document.uri)
