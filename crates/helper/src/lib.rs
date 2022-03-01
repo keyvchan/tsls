@@ -159,11 +159,9 @@ pub mod types {
         pub symbol_kind: Vec<SymbolKind>,
         pub location: Range,
 
-        /// scope form largest to smallest
-        pub belongs_to: Vec<Range>,
-
-        /// only class struct has children
+        // children could be None or multiple symbols
         pub children: Option<Vec<Symbol>>,
+        pub belongs_to_scopes: Vec<Range>,
     }
 
     impl Symbol {
@@ -178,8 +176,8 @@ pub mod types {
                     start_point: Point { row: 0, column: 0 },
                     end_point: Point { row: 0, column: 0 },
                 },
-                belongs_to: vec![],
                 children: None,
+                belongs_to_scopes: vec![],
             }
         }
 

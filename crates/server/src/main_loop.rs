@@ -24,7 +24,7 @@ pub fn main_loop(
                 if connection.handle_shutdown(&req)? {
                     return Ok(());
                 }
-                debug!("got request: {:#?}", req);
+                debug!("got request: {:?}", req);
 
                 match req.method.as_str() {
                     lsp_types::request::GotoDefinition::METHOD => {
@@ -110,15 +110,15 @@ pub fn main_loop(
                         };
                     }
                     _ => {
-                        warn!("unhandled request: {:#?}", req);
+                        warn!("unhandled request: {:?}", req);
                     }
                 }
             }
             Message::Response(resp) => {
-                debug!("got response: {:#?}", resp);
+                debug!("got response: {:?}", resp);
             }
             Message::Notification(not) => {
-                debug!("got notification: {:#?}", not);
+                debug!("got notification: {:?}", not);
 
                 match not.method.as_str() {
                     lsp_types::notification::DidOpenTextDocument::METHOD => {

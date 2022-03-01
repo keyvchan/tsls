@@ -21,9 +21,12 @@ fn build_scopes(
     source_code: &lsp_types::TextDocumentItem,
     node: Node,
 ) -> (Vec<tree_sitter::Range>, HashMap<usize, Vec<Symbol>>) {
-    let query_source = match source_code.language_id.as_str() {
-        "c" => get_query_source("c", "locals").unwrap(),
-        _ => r#""#.to_string(),
+    let query_source = {
+        if let Some(x) = get_query_source(source_code.language_id.as_str(), "locals") {
+            x
+        } else {
+            "".to_string()
+        }
     };
 
     let result = match_by_query_source(source_code, node, query_source.as_str());
@@ -51,10 +54,13 @@ fn build_definitions_and_identifiers(
     node: Node,
     scopes: &[tree_sitter::Range],
 ) -> HashMap<String, Vec<Symbol>> {
-    debug!("build_definitions_and_identifiers: {:?}", source_code);
-    let query_source = match source_code.language_id.as_str() {
-        "c" => get_query_source("c", "locals").unwrap(),
-        _ => r#""#.to_string(),
+    error!("build_definitions_and_identifiers: {:?}", source_code);
+    let query_source = {
+        if let Some(x) = get_query_source(source_code.language_id.as_str(), "locals") {
+            x
+        } else {
+            "".to_string()
+        }
     };
     let result = capture_by_query_source(
         source_code.text.clone(),
@@ -85,14 +91,14 @@ fn build_definitions_and_identifiers(
 
                 let key = format!("{}:{}", variable_name, smallest_scope_id);
 
-                let belongs_to = scopes[0..smallest_scope_id].to_owned();
+                let belongs_to_scopes = scopes[0..smallest_scope_id].to_owned();
                 let symbol = Symbol {
                     name: variable_name.to_owned(),
                     completion_kind: vec![CompletionItemKind::TEXT],
                     symbol_kind: vec![SymbolKind::STRING],
                     location: node.range(),
-                    belongs_to,
                     children: None,
+                    belongs_to_scopes,
                 };
 
                 let vector = match definitions.get_mut(&key) {
@@ -105,6 +111,7 @@ fn build_definitions_and_identifiers(
                 vector.push(symbol.clone());
             }
             _ => {
+                // TODO: check children
                 // ignore
             }
         }
