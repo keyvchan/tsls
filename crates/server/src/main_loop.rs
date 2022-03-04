@@ -1,8 +1,16 @@
 use log::{debug, error, warn};
 
-use lsp_types::{notification::Notification, request::Request as rr, InitializeParams};
+use lsp_types::{
+    notification::{
+        DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, Notification,
+    },
+    request::{
+        Completion, DocumentSymbolRequest, GotoDefinition, References, Rename, Request as rr,
+    },
+    DidOpenTextDocumentParams, InitializeParams,
+};
 
-use lsp_server::{Connection, Message, RequestId};
+use lsp_server::{Connection, Message};
 use std::error::Error;
 
 use crate::{global_state, handler};
@@ -27,11 +35,8 @@ pub fn main_loop(
                 debug!("got request: {:?}", req);
 
                 match req.method.as_str() {
-                    lsp_types::request::GotoDefinition::METHOD => {
-                        let res: Result<
-                            (RequestId, lsp_types::GotoDefinitionParams),
-                            lsp_server::Request,
-                        > = req.extract(lsp_types::request::GotoDefinition::METHOD);
+                    GotoDefinition::METHOD => {
+                        let res = req.clone().extract(&req.method);
                         match res {
                             Ok((id, params)) => {
                                 let resp = handler::goto_definition(
@@ -45,11 +50,8 @@ pub fn main_loop(
                             Err(req) => req,
                         };
                     }
-                    lsp_types::request::Completion::METHOD => {
-                        let res: Result<
-                            (RequestId, lsp_types::CompletionParams),
-                            lsp_server::Request,
-                        > = req.extract(lsp_types::request::Completion::METHOD);
+                    Completion::METHOD => {
+                        let res = req.clone().extract(&req.method);
                         match res {
                             Ok((id, params)) => {
                                 let resp =
@@ -60,11 +62,8 @@ pub fn main_loop(
                             Err(req) => req,
                         };
                     }
-                    lsp_types::request::References::METHOD => {
-                        let res: Result<
-                            (RequestId, lsp_types::ReferenceParams),
-                            lsp_server::Request,
-                        > = req.extract(lsp_types::request::References::METHOD);
+                    References::METHOD => {
+                        let res = req.clone().extract(&req.method);
                         match res {
                             Ok((id, params)) => {
                                 let resp =
@@ -76,9 +75,8 @@ pub fn main_loop(
                         };
                     }
 
-                    lsp_types::request::Rename::METHOD => {
-                        let res: Result<(RequestId, lsp_types::RenameParams), lsp_server::Request> =
-                            req.extract(lsp_types::request::Rename::METHOD);
+                    Rename::METHOD => {
+                        let res = req.clone().extract(&req.method);
                         match res {
                             Ok((id, params)) => {
                                 let resp = handler::rename(id, params, global_state.get_snapshot());
@@ -88,11 +86,8 @@ pub fn main_loop(
                             Err(req) => req,
                         };
                     }
-                    lsp_types::request::DocumentSymbolRequest::METHOD => {
-                        let res: Result<
-                            (RequestId, lsp_types::DocumentSymbolParams),
-                            lsp_server::Request,
-                        > = req.extract(lsp_types::request::DocumentSymbolRequest::METHOD);
+                    DocumentSymbolRequest::METHOD => {
+                        let res = req.clone().extract(&req.method);
                         match res {
                             Ok((id, params)) => {
                                 let resp = handler::document_symbol(
@@ -121,16 +116,16 @@ pub fn main_loop(
                 debug!("got notification: {:?}", not);
 
                 match not.method.as_str() {
-                    lsp_types::notification::DidOpenTextDocument::METHOD => {
-                        let not_res: Result<
-                            lsp_types::DidOpenTextDocumentParams,
-                            lsp_server::Notification,
-                        > = not.extract(lsp_types::notification::DidOpenTextDocument::METHOD);
+                    DidOpenTextDocument::METHOD => {
+                        let not_res = not
+                            .clone()
+                            .extract::<DidOpenTextDocumentParams>(&not.method);
                         match not_res {
                             Ok(params) => {
                                 handler::did_open(params.clone(), &mut global_state);
+
                                 // publish diagnostics here.
-                                let not: lsp_server::Notification = handler::publish_diagnostics(
+                                let not = handler::publish_diagnostics(
                                     params.text_document.uri,
                                     global_state.get_snapshot(),
                                 );
@@ -141,25 +136,18 @@ pub fn main_loop(
                             Err(not) => not,
                         };
                     }
-                    lsp_types::notification::DidChangeTextDocument::METHOD => {
-                        let not_res: Result<
-                            lsp_types::DidChangeTextDocumentParams,
-                            lsp_server::Notification,
-                        > = not.extract(lsp_types::notification::DidChangeTextDocument::METHOD);
-                        match not_res {
+                    DidChangeTextDocument::METHOD => {
+                        match not.clone().extract(&not.method.clone()) {
                             Ok(params) => {
-                                handler::did_change(params.clone(), &mut global_state);
+                                handler::did_change(params, &mut global_state);
 
                                 continue;
                             }
                             Err(not) => not,
                         };
                     }
-                    lsp_types::notification::DidCloseTextDocument::METHOD => {
-                        let not_res: Result<
-                            lsp_types::DidCloseTextDocumentParams,
-                            lsp_server::Notification,
-                        > = not.extract(lsp_types::notification::DidCloseTextDocument::METHOD);
+                    DidCloseTextDocument::METHOD => {
+                        let not_res = not.clone().extract(&not.method.clone());
                         match not_res {
                             Ok(params) => {
                                 handler::did_close(params);
