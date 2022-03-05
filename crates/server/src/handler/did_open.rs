@@ -1,6 +1,7 @@
-use crate::global_state::GlobalState;
 use helper::tree_mutator::get_parser;
 use log::{debug, error};
+
+use crate::global_state::GlobalState;
 
 pub fn did_open(params: lsp_types::DidOpenTextDocumentParams, global_state: &mut GlobalState) {
     debug!("Received a DidOpenTextDocument: {:?}", params);

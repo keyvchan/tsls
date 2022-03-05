@@ -1,8 +1,8 @@
-use crate::match_by_query_source;
-
 use helper::convert::ts_range_to_lsp_range;
 use lsp_types::TextDocumentItem;
 use tree_sitter::Node;
+
+use crate::match_by_query_source;
 
 pub const ERROR: &str = "ERROR";
 

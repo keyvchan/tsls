@@ -2,11 +2,10 @@
 mod cli;
 mod config;
 
+use clap::Parser;
 use flexi_logger::{FileSpec, Logger, WriteMode};
 use log::warn;
 use server::server_mode;
-
-use clap::Parser;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]

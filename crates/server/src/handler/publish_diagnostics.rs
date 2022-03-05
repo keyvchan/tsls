@@ -1,6 +1,7 @@
-use crate::global_state::GlobalState;
 use log::error;
 use lsp_types::notification::Notification;
+
+use crate::global_state::GlobalState;
 
 pub fn publish_diagnostics(
     uri: lsp_types::Url,

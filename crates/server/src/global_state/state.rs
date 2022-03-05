@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use helper::types::Symbol;
 use lsp_types::{Diagnostic, Position, Url};
-use std::collections::HashMap;
 use tree_sitter::{Node, Range, Tree};
 
 type Byte = u8;

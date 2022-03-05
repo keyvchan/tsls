@@ -1,8 +1,9 @@
-use crate::global_state::{GlobalState, Properties};
 use log::warn;
 use lsp_types::TextDocumentItem;
 use queries::{errors, highlight, locals};
 use tree_sitter::Tree;
+
+use crate::global_state::{GlobalState, Properties};
 
 impl GlobalState {
     pub fn get_snapshot(&self) -> GlobalState {
