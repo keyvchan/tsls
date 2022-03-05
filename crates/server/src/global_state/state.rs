@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use helper::types::Symbol;
+use log::warn;
 use lsp_types::{Diagnostic, Position, Url};
 use tree_sitter::{Node, Range, Tree};
 
@@ -20,6 +21,20 @@ pub struct Properties {
     pub ordered_scopes: Vec<Range>,
     pub definitions_lookup_map: HashMap<String, Vec<Symbol>>,
     pub identifiers: HashMap<ScopeID, Vec<Symbol>>,
+}
+
+impl Properties {
+    pub fn clear(&mut self) {
+        self.identifiers.clear();
+        self.definitions_lookup_map.clear();
+        self.ordered_scopes.clear();
+        self.keywords.clear();
+        self.source_code.clear();
+        self.version = 0;
+        self.language_id.clear();
+
+        // Ast not changed, in case fast parse when it opened again
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -95,5 +110,17 @@ impl GlobalState {
             // we don't have a version, return 0
             None => Some(0),
         }
+    }
+
+    pub fn clear(&mut self, uri: &lsp_types::Url) {
+        match self.sources.get_mut(uri) {
+            Some(properties) => {
+                properties.clear();
+            }
+            None => {
+                warn!("clear: no properties found for uri: {:?}", uri);
+            }
+        };
+        self.diagnostics.clear();
     }
 }
