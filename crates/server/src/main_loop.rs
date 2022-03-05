@@ -7,10 +7,11 @@ use lsp_types::{
         DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, Notification,
     },
     request::Request,
-    DidOpenTextDocumentParams, InitializeParams,
+    DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+    InitializeParams,
 };
 
-use crate::{global_state, handler, req, req_match};
+use crate::{global_state, handler, not, not_match, req, req_match};
 
 pub fn main_loop(
     connection: Connection,
@@ -18,8 +19,6 @@ pub fn main_loop(
 ) -> Result<(), Box<dyn Error + Sync + Send>> {
     warn!("starting main loop");
 
-    // define a AST,
-    // parse a simple program make rust happy
     let mut global_state = global_state::GlobalState::new();
 
     for msg in &connection.receiver {
@@ -38,51 +37,7 @@ pub fn main_loop(
             }
             Message::Notification(not) => {
                 debug!("got notification: {:?}", not);
-
-                match not.method.as_str() {
-                    DidOpenTextDocument::METHOD => {
-                        let not_res = not
-                            .clone()
-                            .extract::<DidOpenTextDocumentParams>(&not.method);
-                        match not_res {
-                            Ok(params) => {
-                                handler::did_open(params.clone(), &mut global_state);
-
-                                // publish diagnostics here.
-                                let not = handler::publish_diagnostics(
-                                    params.text_document.uri,
-                                    global_state.get_snapshot(),
-                                );
-                                connection.sender.send(Message::Notification(not))?;
-
-                                continue;
-                            }
-                            Err(not) => not,
-                        };
-                    }
-                    DidChangeTextDocument::METHOD => {
-                        match not.clone().extract(&not.method.clone()) {
-                            Ok(params) => {
-                                handler::did_change(params, &mut global_state);
-
-                                continue;
-                            }
-                            Err(not) => not,
-                        };
-                    }
-                    DidCloseTextDocument::METHOD => {
-                        let not_res = not.clone().extract(&not.method.clone());
-                        match not_res {
-                            Ok(params) => {
-                                handler::did_close(params);
-                                continue;
-                            }
-                            Err(not) => not,
-                        };
-                    }
-
-                    _ => {}
-                }
+                not_match!(not, connection, global_state);
             }
         }
     }
