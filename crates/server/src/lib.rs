@@ -1,6 +1,7 @@
 mod caps;
 mod global_state;
 mod handler;
+mod macros;
 mod main_loop;
 
 use log::warn;

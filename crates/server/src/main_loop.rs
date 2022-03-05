@@ -1,19 +1,16 @@
-use log::{debug, error, warn};
+use std::error::Error;
 
+use log::{debug, error, warn};
+use lsp_server::{Connection, Message};
 use lsp_types::{
     notification::{
         DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, Notification,
     },
-    request::{
-        Completion, DocumentSymbolRequest, GotoDefinition, References, Rename, Request as rr,
-    },
+    request::Request,
     DidOpenTextDocumentParams, InitializeParams,
 };
 
-use lsp_server::{Connection, Message};
-use std::error::Error;
-
-use crate::{global_state, handler};
+use crate::{global_state, handler, req, req_match};
 
 pub fn main_loop(
     connection: Connection,
@@ -34,80 +31,7 @@ pub fn main_loop(
                 }
                 debug!("got request: {:?}", req);
 
-                match req.method.as_str() {
-                    GotoDefinition::METHOD => {
-                        let res = req.clone().extract(&req.method);
-                        match res {
-                            Ok((id, params)) => {
-                                let resp = handler::goto_definition(
-                                    id,
-                                    params,
-                                    global_state.get_snapshot(),
-                                );
-                                connection.sender.send(Message::Response(resp))?;
-                                continue;
-                            }
-                            Err(req) => req,
-                        };
-                    }
-                    Completion::METHOD => {
-                        let res = req.clone().extract(&req.method);
-                        match res {
-                            Ok((id, params)) => {
-                                let resp =
-                                    handler::completion(id, params, global_state.get_snapshot());
-                                connection.sender.send(Message::Response(resp))?;
-                                continue;
-                            }
-                            Err(req) => req,
-                        };
-                    }
-                    References::METHOD => {
-                        let res = req.clone().extract(&req.method);
-                        match res {
-                            Ok((id, params)) => {
-                                let resp =
-                                    handler::references(id, params, global_state.get_snapshot());
-                                connection.sender.send(Message::Response(resp))?;
-                                continue;
-                            }
-                            Err(req) => req,
-                        };
-                    }
-
-                    Rename::METHOD => {
-                        let res = req.clone().extract(&req.method);
-                        match res {
-                            Ok((id, params)) => {
-                                let resp = handler::rename(id, params, global_state.get_snapshot());
-                                connection.sender.send(Message::Response(resp))?;
-                                continue;
-                            }
-                            Err(req) => req,
-                        };
-                    }
-                    DocumentSymbolRequest::METHOD => {
-                        let res = req.clone().extract(&req.method);
-                        match res {
-                            Ok((id, params)) => {
-                                let resp = handler::document_symbol(
-                                    id,
-                                    params,
-                                    global_state.get_snapshot(),
-                                );
-                                connection.sender.send(Message::Response(resp))?;
-                                continue;
-                            }
-                            Err(req) => {
-                                error!("error: {:#?}", req);
-                                req
-                            }
-                        };
-                    }
-                    _ => {
-                        warn!("unhandled request: {:?}", req);
-                    }
-                }
+                req_match!(req, connection, global_state.get_snapshot());
             }
             Message::Response(resp) => {
                 debug!("got response: {:?}", resp);
