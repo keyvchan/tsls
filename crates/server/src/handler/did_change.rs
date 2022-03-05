@@ -1,4 +1,3 @@
-use crate::global_state::GlobalState;
 use helper::{
     convert::position_to_offset,
     tree_mutator::{get_parser, perform_edit},
@@ -6,6 +5,8 @@ use helper::{
 use log::{debug, error};
 use lsp_types::{self, DidChangeTextDocumentParams};
 use tree_sitter::{InputEdit, Point};
+
+use crate::global_state::GlobalState;
 
 pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut GlobalState) {
     let language_id = global_state

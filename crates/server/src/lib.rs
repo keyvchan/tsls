@@ -4,11 +4,11 @@ mod handler;
 mod macros;
 mod main_loop;
 
+use std::error::Error;
+
 use log::warn;
 use lsp_server::Connection;
 use lsp_types::InitializeParams;
-use std::error::Error;
-
 use main_loop::main_loop;
 
 pub fn server_mode() -> Result<(), Box<dyn Error + Sync + Send>> {

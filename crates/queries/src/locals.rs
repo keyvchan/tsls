@@ -1,6 +1,3 @@
-use crate::utils::get_query_source;
-use crate::{capture_by_query_source, match_by_query_source};
-
 use std::collections::HashMap;
 
 use helper::types::Symbol;
@@ -8,7 +5,10 @@ use log::{debug, error};
 use lsp_types::{CompletionItemKind, SymbolKind};
 use tree_sitter::Node;
 
-use crate::utils::get_smallest_scope_id_by_node;
+use crate::{
+    capture_by_query_source, match_by_query_source,
+    utils::{get_query_source, get_smallest_scope_id_by_node},
+};
 
 // TODO: Hard-coded for now.
 pub const REFERENCE: &str = "reference";

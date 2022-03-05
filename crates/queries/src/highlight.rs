@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+
+use helper::types::Symbol;
 use log::{debug, warn};
 use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
-use std::collections::HashMap;
 use tree_sitter::{Language, Parser, Range, Tree};
 
-use crate::capture_by_query_source;
-use crate::utils::{get_query_source, get_smallest_scope_id_by_node};
-use helper::types::Symbol;
+use crate::{
+    capture_by_query_source,
+    utils::{get_query_source, get_smallest_scope_id_by_node},
+};
 
 /// Update kind of the item in definitions.
 pub fn update_identifiers_kind(

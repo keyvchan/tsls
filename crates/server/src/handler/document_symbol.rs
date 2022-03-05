@@ -1,11 +1,6 @@
 use helper::convert::ts_range_to_lsp_range;
-
-use lsp_server::RequestId;
-use lsp_server::Response;
-use lsp_types::error_codes::REQUEST_CANCELLED;
-use lsp_types::DocumentSymbol;
-use lsp_types::DocumentSymbolParams;
-use lsp_types::SymbolKind;
+use lsp_server::{RequestId, Response};
+use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentSymbol, DocumentSymbolParams, SymbolKind};
 
 use crate::global_state::GlobalState;
 
