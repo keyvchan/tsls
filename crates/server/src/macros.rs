@@ -1,11 +1,11 @@
 pub mod request {
+    /// Match a request against a list of patterns.
     #[macro_export]
     macro_rules! req_match {
         ($req:expr, $conn:expr, $snapshot:expr) => {
             use lsp_types::request::{
-                Completion, DocumentSymbolRequest, GotoDefinition, References, Rename,
+                Completion, DocumentSymbolRequest, GotoDefinition, References, Rename, Request,
             };
-
             match $req.method.as_str() {
                 GotoDefinition::METHOD => req!(goto_definition, $req, $conn, $snapshot),
                 Rename::METHOD => req!(rename, $req, $conn, $snapshot),
@@ -20,6 +20,7 @@ pub mod request {
         };
     }
 
+    /// Match a request
     #[macro_export]
     macro_rules! req {
         ($method:ident, $req:expr, $conn:expr, $snapshot:expr) => {{
@@ -37,6 +38,8 @@ pub mod request {
 }
 
 pub mod notification {
+
+    /// received a notification
     #[macro_export]
     macro_rules! not {
         ($method:ident, $params_type:ident, $not:expr, $conn:expr, $state:ident) => {{
@@ -56,9 +59,16 @@ pub mod notification {
         }};
     }
 
+    /// Match a notification against a list of patterns.
     #[macro_export]
     macro_rules! not_match {
         ($not:expr, $conn:expr, $state:ident) => {
+            use lsp_types::{
+                notification::{
+                    DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, Notification,
+                },
+                DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+            };
             match $not.method.as_str() {
                 DidOpenTextDocument::METHOD => {
                     not!(did_open, DidOpenTextDocumentParams, $not, $conn, $state)

@@ -2,14 +2,7 @@ use std::error::Error;
 
 use log::{debug, error, warn};
 use lsp_server::{Connection, Message};
-use lsp_types::{
-    notification::{
-        DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, Notification,
-    },
-    request::Request,
-    DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-    InitializeParams,
-};
+use lsp_types::InitializeParams;
 
 use crate::{global_state, handler, not, not_match, req, req_match};
 
