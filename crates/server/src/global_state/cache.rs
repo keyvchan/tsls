@@ -3,7 +3,7 @@ use lsp_types::TextDocumentItem;
 use queries::{
     errors,
     highlight::{self, update_identifiers_kind},
-    locals::{self, build_definitions_and_scopes},
+    locals::build_definitions_and_scopes,
 };
 use tree_sitter::Tree;
 
