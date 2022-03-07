@@ -1,6 +1,6 @@
 use helper::convert::ts_range_to_lsp_range;
 use lsp_server::{RequestId, Response};
-use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentSymbol, DocumentSymbolParams, SymbolKind};
+use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentSymbol, DocumentSymbolParams};
 
 use crate::global_state::GlobalState;
 
@@ -25,7 +25,7 @@ pub fn document_symbol(
 
     let identifiers = &properties.identifiers;
 
-    for (scope_id, symbols) in identifiers {
+    for symbols in identifiers.values() {
         #[allow(deprecated)]
         for symbol in symbols {
             // debug!("symbol: {:?}, {:?}", symbol.name, symbol.belongs_to());

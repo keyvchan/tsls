@@ -1,6 +1,6 @@
 use lsp_types::{
-    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, ReferencesOptions,
-    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
+    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, ServerCapabilities,
+    TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
     WorkDoneProgressOptions,
 };
 
@@ -58,7 +58,7 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
 }
 
 fn merge_capabilities(
-    client_caps: ClientCapabilities,
+    _client_caps: ClientCapabilities,
     server_caps: ServerCapabilities,
 ) -> ServerCapabilities {
     server_caps
