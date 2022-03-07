@@ -1,5 +1,8 @@
 # tsls
 
+[![license](http://img.shields.io/badge/license-Apache%20v2-blue.svg)](https://raw.githubusercontent.com/keyvchan/tsls/main/LICENSE)
+[![build](https://github.com/Peltoche/lsd/workflows/CICD/badge.svg)](https://github.com/keyvchan/tsls/actions)
+
 [Tree-sitter](https://github.com/tree-sitter/tree-sitter) based language server for general languages.
 
 **Warning**: It's in active development right now, and bug is expected.
