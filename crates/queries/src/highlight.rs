@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use helper::types::Symbol;
-use log::{debug, warn};
 use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
 use tree_sitter::{Language, Parser, Range, Tree};
 
@@ -59,7 +58,7 @@ pub fn update_identifiers_kind(
         }
     }
 
-    for ((id, name), value) in result {
+    for ((id, _name), value) in result {
         let result = identifiers.get_mut(&id).unwrap();
         result.push(value);
     }
@@ -154,7 +153,7 @@ pub fn build_keywords_cache(language_id: String) -> Vec<String> {
 
     for item in lists {
         let new_tree = parser.parse(item.clone(), None).unwrap();
-        for (capture_name, node) in capture_by_query_source(
+        for (_capture_name, node) in capture_by_query_source(
             item.clone(),
             new_tree.root_node(),
             r#"

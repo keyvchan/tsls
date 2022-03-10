@@ -11,7 +11,7 @@
 
   - [ ] cli support
   - [ ] Dynamic loading 
-  - [-] Add tests
+  - [x] Add tests
   - [-] Remove unwrap()
   - [-] Documentation
   - [x] Log

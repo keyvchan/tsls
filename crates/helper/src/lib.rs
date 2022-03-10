@@ -12,6 +12,21 @@ pub mod convert {
     use lsp_types::Position;
     use tree_sitter::{Point, Range};
 
+    /// Converts a `tree_sitter::Point` to byte offset
+    ///
+    /// # Examples
+    /// ```rust
+    /// use helper::convert::position_to_offset;
+    /// use tree_sitter::Point;
+    ///
+    /// let text = r#"
+    /// int main() {
+    ///     printf("Hello World!");
+    /// }
+    /// "#;
+    /// let point = Point { row: 1, column: 3 };
+    /// let offset = position_to_offset(text.as_bytes(), point);
+    /// ```
     pub fn position_to_offset(input: &[u8], position: Point) -> usize {
         let mut current_position = Point { row: 0, column: 0 };
         for (i, c) in input.iter().enumerate() {
@@ -28,6 +43,20 @@ pub mod convert {
         input.len()
     }
 
+    /// Converts a byte offset to `tree_sitter::Point`
+    /// # Examples
+    /// ```rust
+    /// use helper::convert::offset_to_position;
+    /// use tree_sitter::Point;
+    ///
+    /// let text = r#"
+    /// int main() {
+    ///    printf("Hello World!");
+    /// }
+    /// "#;
+    /// let offset = 12;
+    /// let point = offset_to_position(text.as_bytes(), offset);
+    /// ```
     pub fn offset_to_position(input: &[u8], offset: usize) -> Point {
         let mut result = Point { row: 0, column: 0 };
         for c in &input[0..offset] {
@@ -41,6 +70,16 @@ pub mod convert {
         result
     }
 
+    /// Converts a `tree_sitter::Point` to `lsp_types::Position`
+    ///
+    /// # Examples
+    /// ```rust
+    /// use helper::convert::ts_point_to_lsp_position;
+    /// use tree_sitter::Point;
+    ///
+    /// let point = Point { row: 1, column: 3 };
+    /// let position = ts_point_to_lsp_position(&point);
+    /// ```
     pub fn ts_point_to_lsp_position(point: &Point) -> Position {
         Position {
             line: point.row as u32,
@@ -48,6 +87,16 @@ pub mod convert {
         }
     }
 
+    /// Converts a `lsp_types::Position` to `tree_sitter::Point`
+    ///
+    /// # Examples
+    /// ```rust
+    /// use helper::convert::lsp_position_to_ts_point;
+    /// use lsp_types::Position;
+    ///
+    /// let position = Position { line: 1, character: 3 };
+    /// let point = lsp_position_to_ts_point(&position);
+    /// ```
     pub fn lsp_position_to_ts_point(position: &Position) -> Point {
         Point {
             row: position.line as usize,
@@ -55,7 +104,19 @@ pub mod convert {
         }
     }
 
-    /// Transform range from treesitter to lsp range.
+    /// Converts `tree_sitter::Range` to `lsp_types::Range`.
+    /// # Examples
+    /// ```rust
+    /// use helper::convert::ts_range_to_lsp_range;
+    /// use tree_sitter::{Range, Point};
+    ///
+    /// let ts_range = tree_sitter::Range {
+    ///     start_byte: 12,
+    ///     end_byte: 26,
+    ///     start_point: Point { row: 1, column: 3 },
+    ///     end_point: Point { row: 2, column: 4 },
+    /// };
+    /// let lsp_range = ts_range_to_lsp_range(&ts_range);
     pub fn ts_range_to_lsp_range(range: &Range) -> lsp_types::Range {
         lsp_types::Range {
             start: lsp_types::Position {
@@ -69,6 +130,23 @@ pub mod convert {
         }
     }
 
+    /// Converts `lsp_types::Range` to `tree_sitter::Range`.
+    /// # Examples
+    /// ```rust
+    /// use helper::convert::lsp_range_to_ts_range;
+    /// use lsp_types::{Range, Position};
+    ///
+    /// let text = r#"
+    /// int main() {
+    ///    printf("Hello World!");
+    ///    return 0;
+    /// }
+    /// "#;
+    /// let lsp_range = Range {
+    ///    start: Position { line: 1, character: 3 },
+    ///    end: Position { line: 2, character: 4 },
+    ///};
+    /// let ts_range = lsp_range_to_ts_range(&lsp_range, text.as_bytes());
     pub fn lsp_range_to_ts_range(range: &lsp_types::Range, input: &[u8]) -> Range {
         Range {
             start_point: Point {

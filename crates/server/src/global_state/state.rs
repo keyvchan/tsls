@@ -87,7 +87,7 @@ impl GlobalState {
     }
 
     /// Get node at a given position
-    pub fn get_node_at_position(&self, url: &Url, position: Position) -> Option<Node> {
+    pub fn _get_node_at_position(&self, url: &Url, position: Position) -> Option<Node> {
         let properties = self.sources.get(url)?;
         let node = properties.ast.root_node();
         node.descendant_for_point_range(

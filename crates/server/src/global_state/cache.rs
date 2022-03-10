@@ -1,6 +1,10 @@
 use log::warn;
 use lsp_types::TextDocumentItem;
-use queries::{errors, highlight, locals};
+use queries::{
+    errors,
+    highlight::{self, update_identifiers_kind},
+    locals::build_definitions_and_scopes,
+};
 use tree_sitter::Tree;
 
 use crate::global_state::{GlobalState, Properties};
@@ -11,9 +15,9 @@ impl GlobalState {
     }
     pub fn build_cache(&mut self, source_code: TextDocumentItem, tree: &Tree) {
         let (definitions_lookup_map, ordered_scopes, mut identifiers) =
-            locals::build_definitions_and_scopes(&source_code, &tree.root_node());
+            build_definitions_and_scopes(&source_code, &tree.root_node());
 
-        highlight::update_identifiers_kind(&mut identifiers, &ordered_scopes, &source_code, tree);
+        update_identifiers_kind(&mut identifiers, &ordered_scopes, &source_code, tree);
 
         let keywords = highlight::build_keywords_cache(source_code.language_id.clone());
 
