@@ -4,6 +4,7 @@
  * ------------------------------------------------------------------------------------------ */
 
 import { workspace, ExtensionContext } from 'vscode';
+import * as vscode from 'vscode';
 
 import {
 	LanguageClient,
@@ -29,7 +30,8 @@ export function activate(context: ExtensionContext) {
 		synchronize: {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-		}
+		},
+		traceOutputChannel: vscode.window.createOutputChannel('tsls')
 	};
 
 	// Create the language client and start the client.
