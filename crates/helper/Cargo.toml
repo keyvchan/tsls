@@ -20,3 +20,4 @@ tree-sitter-typescript = { version = "0.20.0", optional = false}
 tree-sitter-kotlin = { version = "0.2.11", optional = false}
 tree-sitter-cuda = { version = "0.1.0", optional = false}
 tree-sitter-glsl = { version = "0.1.2", optional = false}
+tree-sitter-hare = {path = "../../parsers/tree-sitter-hare", version = "0.0.1"}

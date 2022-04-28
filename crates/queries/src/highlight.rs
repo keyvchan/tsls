@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use helper::types::Symbol;
+use log::{error, info};
 use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
 use tree_sitter::{Language, Parser, Range, Tree};
 
@@ -30,7 +31,11 @@ pub fn update_identifiers_kind(
         let mut belongs_to_scopes = scopes[0..smallest_scope_id].to_owned();
         if smallest_scope_id == 0 {
             // if variable not in any scope, we assume it in the maxium scope
-            belongs_to_scopes = vec![scopes[0]];
+            if scopes.is_empty() {
+                belongs_to_scopes = vec![]
+            } else {
+                belongs_to_scopes = vec![scopes[0]];
+            }
         }
 
         if visited_names.contains(&(smallest_scope_id, variable_name.to_string())) {
@@ -58,8 +63,13 @@ pub fn update_identifiers_kind(
         }
     }
 
+    let mut empty_vec = vec![];
+
     for ((id, _name), value) in result {
-        let result = identifiers.get_mut(&id).unwrap();
+        let result = match identifiers.get_mut(&id) {
+            Some(result) => result,
+            None => &mut empty_vec,
+        };
         result.push(value);
     }
 }
@@ -132,6 +142,12 @@ pub fn build_keywords_cache(language_id: String) -> Vec<String> {
                     name: (identifier) @capture
             ) 
         )@list
+
+        (
+            capture
+                name: (identifier) @capture
+        ) 
+
         "#,
     ) {
         let node_content = node.utf8_text(source.as_bytes()).unwrap();
@@ -174,6 +190,7 @@ pub fn build_keywords_cache(language_id: String) -> Vec<String> {
             keywords.push(node_content.to_string());
         }
     }
+    error!("{:?}", keywords);
 
     keywords
 }

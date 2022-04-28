@@ -205,6 +205,7 @@ pub mod tree_mutator {
             "cuda" => tree_sitter_cuda::language(),
             "kotlin" => tree_sitter_kotlin::language(),
             "glsl" => tree_sitter_glsl::language(),
+            "hare" => tree_sitter_hare::language(),
             _ => {
                 error!("Language not supported");
                 // Set fallback to plain text
