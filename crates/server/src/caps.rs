@@ -38,7 +38,7 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
         workspace_symbol_provider: None,
         code_action_provider: None,
         code_lens_provider: None,
-        document_formatting_provider: None,
+        document_formatting_provider: Some(OneOf::Left(true)),
         document_range_formatting_provider: None,
         document_on_type_formatting_provider: None,
         selection_range_provider: None,
