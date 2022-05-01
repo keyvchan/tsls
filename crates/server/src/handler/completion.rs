@@ -1,3 +1,4 @@
+use helper::types::Symbol;
 use log::debug;
 use lsp_server::{RequestId, Response};
 use lsp_types::{
@@ -47,13 +48,14 @@ pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -
             );
             debug!("scope id: {}", scope_id);
 
+            let symbols = vec![Symbol::default()];
             let symbols = state
                 .sources
                 .get(&params.text_document_position.text_document.uri)
                 .unwrap()
                 .identifiers
                 .get(&scope_id)
-                .unwrap();
+                .unwrap_or(&symbols);
 
             for symbol in symbols {
                 match *symbol.completion_kind.last().unwrap() {

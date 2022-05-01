@@ -46,6 +46,7 @@ fn build_scopes(
             }
         }
     }
+
     (scopes, identifiers)
 }
 

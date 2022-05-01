@@ -1,3 +1,6 @@
 [submodule "parsers/tree-sitter-query"]
 	path = parsers/tree-sitter-query
 	url = https://github.com/keyvchan/tree-sitter-query
+[submodule "parsers/tree-sitter-hare"]
+	path = parsers/tree-sitter-hare
+	url = https://github.com/keyvchan/tree-sitter-hare
