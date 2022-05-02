@@ -1,6 +1,6 @@
 use helper::convert::ts_range_to_lsp_range;
-use lsp_server::{RequestId, Response};
-use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentSymbol, DocumentSymbolParams};
+use lsp_server::{ErrorCode::ParseError, RequestId, Response};
+use lsp_types::{DocumentSymbol, DocumentSymbolParams};
 
 use crate::global_state::GlobalState;
 
@@ -16,7 +16,7 @@ pub fn document_symbol(
     } else {
         return Response::new_err(
             id,
-            REQUEST_CANCELLED as i32,
+            ParseError as i32,
             "No properties found for this document".to_string(),
         );
     };

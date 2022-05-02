@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use helper::types::Symbol;
-use log::{error, info};
+use log::error;
 use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
 use tree_sitter::{Language, Parser, Range, Tree};
 
