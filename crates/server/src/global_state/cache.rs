@@ -36,7 +36,8 @@ impl GlobalState {
         // insert update the value in hashmap
         self.sources.insert(source_code.uri.clone(), properties);
 
-        let diagnostics = errors::build_diagnostics(&source_code, &tree.root_node());
+        let diagnostics =
+            errors::build_diagnostics(source_code.text.as_bytes().to_vec(), &tree.root_node());
 
         self.diagnostics.insert(source_code.uri, diagnostics);
     }

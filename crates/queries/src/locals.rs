@@ -29,7 +29,11 @@ fn build_scopes(
         }
     };
 
-    let result = match_by_query_source(source_code, node, query_source.as_str());
+    let result = match_by_query_source(
+        &source_code.text.as_bytes().to_vec(),
+        node,
+        query_source.as_str(),
+    );
 
     // A scope contains a node
     let mut identifiers: HashMap<usize, Vec<Symbol>> = HashMap::new();
@@ -64,7 +68,7 @@ fn build_definitions_and_identifiers(
         }
     };
     let result = capture_by_query_source(
-        source_code.text.clone(),
+        &source_code.text.as_bytes().to_vec(),
         node.to_owned(),
         query_source.as_str(),
     );
@@ -127,7 +131,7 @@ fn build_definitions_and_identifiers(
         }
     };
     let result = capture_by_query_source(
-        source_code.text.clone(),
+        &source_code.text.as_bytes().to_vec(),
         node.to_owned(),
         query_source.as_str(),
     );
