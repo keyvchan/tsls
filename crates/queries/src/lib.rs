@@ -1,12 +1,13 @@
 pub mod errors;
 pub mod highlight;
+pub mod indents;
 pub mod locals;
 pub mod utils;
 
 use tree_sitter::Node;
 
 fn match_by_query_source<'tree>(
-    source_code: &lsp_types::TextDocumentItem,
+    source_code: &Vec<u8>,
     node: Node<'tree>,
     query_source: &str,
 ) -> Vec<Vec<(String, Node<'tree>)>> {
@@ -14,7 +15,9 @@ fn match_by_query_source<'tree>(
 
     // TODO: Store all the info and do query
     let mut query_cursor = tree_sitter::QueryCursor::new();
-    let matches = query_cursor.matches(&query, node, source_code.text.as_bytes());
+
+    // FIXME: Make compiler happy
+    let matches = query_cursor.matches(&query, node, &**source_code);
 
     matches
         .map(|m| {
@@ -32,7 +35,7 @@ fn match_by_query_source<'tree>(
 }
 
 fn capture_by_query_source<'tree>(
-    source_code: String,
+    source_code: &Vec<u8>,
     node: Node<'tree>,
     query_source: &str,
 ) -> Vec<(String, Node<'tree>)> {
@@ -40,7 +43,7 @@ fn capture_by_query_source<'tree>(
 
     // TODO: Store all the info and do query
     let mut query_cursor = tree_sitter::QueryCursor::new();
-    let mut captures = query_cursor.captures(&query, node, source_code.as_bytes());
+    let mut captures = query_cursor.captures(&query, node, &**source_code);
 
     let mut result: Vec<(String, Node<'tree>)> = Vec::new();
     for (mat, capture_index) in &mut captures {

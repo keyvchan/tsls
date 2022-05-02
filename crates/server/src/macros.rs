@@ -4,7 +4,8 @@ pub mod request {
     macro_rules! req_match {
         ($req:expr, $conn:expr, $snapshot:expr) => {
             use lsp_types::request::{
-                Completion, DocumentSymbolRequest, GotoDefinition, References, Rename, Request,
+                Completion, DocumentSymbolRequest, Formatting, GotoDefinition, References, Rename,
+                Request,
             };
             match $req.method.as_str() {
                 GotoDefinition::METHOD => req!(goto_definition, $req, $conn, $snapshot),
@@ -12,6 +13,7 @@ pub mod request {
                 Completion::METHOD => req!(completion, $req, $conn, $snapshot),
                 DocumentSymbolRequest::METHOD => req!(document_symbol, $req, $conn, $snapshot),
                 References::METHOD => req!(references, $req, $conn, $snapshot),
+                Formatting::METHOD => req!(format, $req, $conn, $snapshot),
                 _ => {
                     error!("unhandled request: {:?}", $req);
                     continue;

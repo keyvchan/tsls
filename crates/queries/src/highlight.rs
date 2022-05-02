@@ -18,7 +18,11 @@ pub fn update_identifiers_kind(
     tree: &Tree,
 ) {
     let source = get_query_source(source_code.language_id.as_str(), "highlights").unwrap();
-    let captures = capture_by_query_source(source_code.text.clone(), tree.root_node(), &source);
+    let captures = capture_by_query_source(
+        &source_code.text.as_bytes().to_vec(),
+        tree.root_node(),
+        &source,
+    );
 
     let mut visited_names: Vec<(usize, String)> = vec![];
     let mut result = HashMap::<(usize, String), Symbol>::new();
@@ -133,7 +137,7 @@ pub fn build_keywords_cache(language_id: String) -> Vec<String> {
     let mut lists: Vec<String> = vec![];
 
     for (capture_name, node) in capture_by_query_source(
-        source.clone(),
+        &source.as_bytes().to_vec(),
         tree.root_node(),
         r#"
         (list
@@ -170,7 +174,7 @@ pub fn build_keywords_cache(language_id: String) -> Vec<String> {
     for item in lists {
         let new_tree = parser.parse(item.clone(), None).unwrap();
         for (_capture_name, node) in capture_by_query_source(
-            item.clone(),
+            &item.as_bytes().to_vec(),
             new_tree.root_node(),
             r#"
                 (
