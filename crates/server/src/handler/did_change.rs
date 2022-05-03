@@ -1,5 +1,5 @@
 use helper::{
-    convert::position_to_offset,
+    convert::{offset_to_position, position_to_offset},
     tree_mutator::{get_parser, perform_edit},
 };
 use log::{debug, error};
@@ -114,26 +114,21 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         } else {
             // Modification
             edit.old_end_byte = start_byte;
-            edit.new_end_byte = end_byte;
+            edit.new_end_byte = end_byte + content.len();
 
-            edit.new_end_position = start_position;
-            edit.old_end_position = end_position;
             // edit the source_code
             source_code.splice(start_byte..end_byte, content.as_bytes().to_vec());
+
+            // edit the old_end_position
+            edit.new_end_position = offset_to_position(&source_code, end_byte + content.len() - 1);
+            edit.old_end_position = start_position;
         }
 
         // fixed: index out of range on symbol modified
-        error!("{:#?}", edit);
+        debug!("InputEdit: {:?}", edit);
         // edit tree each rounds
         perform_edit(&mut old_tree, &edit);
     }
-
-    // Now, we get the final source code
-    debug!(
-        "final source code: {:?}, {:?}",
-        String::from_utf8(source_code.clone()).unwrap(),
-        source_code.len()
-    );
 
     // update cache
     global_state.update_source_code(&params.text_document.uri, source_code.clone());

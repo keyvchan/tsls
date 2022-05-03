@@ -1,16 +1,12 @@
 use helper::convert::ts_range_to_lsp_range;
-use lsp_types::TextDocumentItem;
 use tree_sitter::Node;
 
 use crate::match_by_query_source;
 
 pub const ERROR: &str = "ERROR";
 
-pub fn build_diagnostics(
-    source_code: &TextDocumentItem,
-    node: &Node,
-) -> Vec<lsp_types::Diagnostic> {
-    let result = match_by_query_source(source_code, *node, "(ERROR) @ERROR");
+pub fn build_diagnostics(source_code: Vec<u8>, node: &Node) -> Vec<lsp_types::Diagnostic> {
+    let result = match_by_query_source(&source_code, *node, "(ERROR) @ERROR");
 
     let mut errors: Vec<lsp_types::Diagnostic> = Vec::new();
 

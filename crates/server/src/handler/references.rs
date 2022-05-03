@@ -1,6 +1,6 @@
 use helper::tree_walker::get_named_node_by_position;
-use lsp_server::{RequestId, Response};
-use lsp_types::{error_codes::REQUEST_CANCELLED, ReferenceParams};
+use lsp_server::{ErrorCode::ParseError, RequestId, Response};
+use lsp_types::ReferenceParams;
 use queries::utils::get_smallest_scope_id_by_node;
 
 use crate::global_state::GlobalState;
@@ -13,7 +13,7 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
     } else {
         return Response::new_err(
             id,
-            REQUEST_CANCELLED as i32,
+            ParseError as i32,
             "No tree found for this document".to_string(),
         );
     };
@@ -22,7 +22,7 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
     } else {
         return Response::new_err(
             id,
-            REQUEST_CANCELLED as i32,
+            ParseError as i32,
             "No node found for this position".to_string(),
         );
     };
@@ -32,7 +32,7 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
     } else {
         return Response::new_err(
             id,
-            REQUEST_CANCELLED as i32,
+            ParseError as i32,
             "No properties found for this document".to_string(),
         );
     };
@@ -45,7 +45,7 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
     } else {
         return Response::new_err(
             id,
-            REQUEST_CANCELLED as i32,
+            ParseError as i32,
             "No variable name found for this node".to_string(),
         );
     };
@@ -56,7 +56,7 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
     } else {
         return Response::new_err(
             id,
-            REQUEST_CANCELLED as i32,
+            ParseError as i32,
             "No definitions found for this variable".to_string(),
         );
     };

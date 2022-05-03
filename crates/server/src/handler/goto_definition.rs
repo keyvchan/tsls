@@ -1,4 +1,5 @@
 use log::{debug, error};
+use lsp_server::ErrorCode::ParseError;
 
 use crate::global_state::GlobalState;
 
@@ -44,7 +45,7 @@ pub fn goto_definition(
                     error!("could not find definition for {}", key);
                     return lsp_server::Response::new_err(
                         id,
-                        lsp_types::error_codes::REQUEST_CANCELLED as i32,
+                        ParseError as i32,
                         "could not find definition for this variable".to_string(),
                     );
                 }

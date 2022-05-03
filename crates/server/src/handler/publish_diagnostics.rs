@@ -1,4 +1,4 @@
-use log::error;
+use log::debug;
 use lsp_types::notification::Notification;
 
 use crate::global_state::GlobalState;
@@ -9,7 +9,7 @@ pub fn publish_diagnostics(
 ) -> lsp_server::Notification {
     let diagnostics = global_state.get_diagnostics(&uri).unwrap_or_default();
 
-    error!("publish_diagnostics: {:?}", diagnostics);
+    debug!("publish_diagnostics: {:?}", diagnostics);
 
     let params = lsp_types::PublishDiagnosticsParams {
         uri: uri.clone(),

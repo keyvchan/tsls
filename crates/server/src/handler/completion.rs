@@ -1,6 +1,6 @@
 use helper::types::Symbol;
 use log::debug;
-use lsp_server::{RequestId, Response};
+use lsp_server::{ErrorCode::InternalError, RequestId, Response};
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionParams, CompletionResponse,
 };
@@ -75,10 +75,18 @@ pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -
             let trigger_character = context.trigger_character.unwrap_or_else(|| "".to_string());
             debug!("trigger character: {}", trigger_character);
 
-            unimplemented!("trigger_character not implemented")
+            return Response::new_err(
+                id,
+                InternalError as i32,
+                "trigger_character not implemented".to_string(),
+            );
         }
         lsp_types::CompletionTriggerKind::TRIGGER_FOR_INCOMPLETE_COMPLETIONS => {
-            unimplemented!("trigger_for_incomplete_completions")
+            return Response::new_err(
+                id,
+                InternalError as i32,
+                "trigger_character not implemented".to_string(),
+            );
         }
 
         _ => {}
