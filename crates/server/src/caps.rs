@@ -28,7 +28,7 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
         declaration_provider: Some(DeclarationCapability::Simple(true)),
         definition_provider: Some(OneOf::Left(true)),
         references_provider: Some(OneOf::Left(true)),
-        rename_provider: Some(OneOf::Left(true)),
+        rename_provider: None,
         document_symbol_provider: None,
         hover_provider: None,
         signature_help_provider: None,

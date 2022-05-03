@@ -1,4 +1,4 @@
-use lsp_server::{RequestId, Response};
+use lsp_server::{ErrorCode::ParseError, RequestId, Response};
 use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentFormattingParams, TextEdit};
 use queries::indents::text_edits;
 
@@ -39,12 +39,12 @@ pub fn format(
     };
 
     // get text edit
-    let text_edits = text_edits(source_code, &language, old_tree);
+    let text_edits = match text_edits(source_code, &language, old_tree) {
+        Ok(text_edits) => text_edits,
+        Err(e) => return Response::new_err(id, ParseError as i32, e),
+    };
 
-    let result = Some(TextEdit {
-        ..Default::default()
-    });
-    let result = serde_json::to_value(&result).unwrap();
+    let result = serde_json::to_value(&text_edits).unwrap();
     lsp_server::Response {
         id,
         result: Some(result),
