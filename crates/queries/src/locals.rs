@@ -136,10 +136,6 @@ fn build_definitions_and_identifiers(
         query_source.as_str(),
     );
 
-    for (capture, node) in result {
-        error!("{:#?}, {:#?}", capture, &node);
-    }
-
     definitions
 }
 
