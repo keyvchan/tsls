@@ -120,7 +120,7 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
             source_code.splice(start_byte..end_byte, content.as_bytes().to_vec());
 
             // edit the old_end_position
-            edit.new_end_position = offset_to_position(&source_code, end_byte + content.len());
+            edit.new_end_position = offset_to_position(&source_code, end_byte + content.len() - 1);
             edit.old_end_position = start_position;
         }
 
@@ -130,14 +130,6 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         perform_edit(&mut old_tree, &edit);
     }
 
-    // Now, we get the final source code
-    debug!(
-        "final source code: {:?}, {:?}",
-        String::from_utf8(source_code.clone()).unwrap(),
-        source_code.len()
-    );
-    debug!("final tree: {:?}", old_tree.root_node().to_sexp());
-
     // update cache
     global_state.update_source_code(&params.text_document.uri, source_code.clone());
 
@@ -146,7 +138,6 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         Some(tree) => tree,
         None => return,
     };
-    debug!("reparsed tree: {:?}", new_tree.root_node().to_sexp());
 
     global_state.update_cache(
         lsp_types::TextDocumentItem {
