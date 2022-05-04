@@ -1,5 +1,5 @@
 use lsp_server::{ErrorCode::ParseError, RequestId, Response};
-use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentFormattingParams, TextEdit};
+use lsp_types::{error_codes::REQUEST_CANCELLED, DocumentFormattingParams};
 use queries::indents::text_edits;
 
 use crate::global_state::GlobalState;

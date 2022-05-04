@@ -1,24 +1,24 @@
-use log::warn;
-use lsp_types::TextDocumentItem;
+use lsp_types::{TextDocumentItem, Url};
 use queries::{
-    errors,
     highlight::{self, update_identifiers_kind},
     locals::build_definitions_and_scopes,
 };
 use tree_sitter::Tree;
 
-use crate::global_state::{GlobalState, Properties};
+use super::{docuemnt::Document, parsed::ParsedInfo, propertie::Properties};
+use crate::global_state::GlobalState;
 
 impl GlobalState {
     pub fn get_snapshot(&self) -> GlobalState {
         self.clone()
     }
     pub fn build_cache(&mut self, source_code: TextDocumentItem, tree: Option<&Tree>) {
+        let uri = &source_code.uri;
         // if tree is None, it means we already parsed the source code
         // and we can use the cached tree
         let tree = match tree {
-            Some(tree) => tree.clone(),
-            None => self.get_snapshot_tree(&source_code.uri).unwrap(),
+            Some(tree) => tree,
+            None => &self.get_tree(&uri).unwrap(),
         };
         let (definitions_lookup_map, ordered_scopes, mut identifiers) =
             build_definitions_and_scopes(
@@ -37,35 +37,61 @@ impl GlobalState {
 
         let keywords = highlight::build_keywords_cache(source_code.language_id.clone());
 
-        // Save it to the global state
-        let properties = Properties {
-            ast: tree.to_owned(),
-            source_code: source_code.text.as_bytes().to_vec(),
-            language_id: source_code.language_id.to_owned(),
-            version: source_code.version,
-            keywords,
-            ordered_scopes,
-            definitions_lookup_map,
-            identifiers,
-        };
+        let document = Document::new(
+            *tree,
+            source_code.version,
+            source_code.text.as_bytes().to_vec(),
+        );
+        self.update_document(&uri, &document);
 
-        // insert update the value in hashmap
-        self.sources.insert(source_code.uri.clone(), properties);
+        let parsed_info = ParsedInfo::new(&ordered_scopes, &definitions_lookup_map, &identifiers);
+        self.update_parsed_info(&uri, &parsed_info);
 
-        let diagnostics =
-            errors::build_diagnostics(source_code.text.as_bytes().to_vec(), &tree.root_node());
+        let properties_cache = Properties::new(&source_code.language_id, &keywords);
+        self.update_properties(&uri, &properties_cache);
 
-        self.diagnostics.insert(source_code.uri, diagnostics);
+        self.update_diagnostics(&uri);
     }
 
     // WARN: Not used for now
-    pub fn update_cache(&mut self, source_code: TextDocumentItem, tree: Option<&Tree>) {
+    pub fn update_cache(&mut self, uri: &Url) -> Result<(), String> {
         // check if the cache needed to be updated by source_code.version
-        if source_code.version >= self.get_version(&source_code.uri).unwrap_or_default() {
-            // insert the cache
-            self.build_cache(source_code, tree);
-        } else {
-            warn!("Cache already up to date");
-        }
+        // insert the cache
+        let tree = match self.get_tree(uri) {
+            Some(tree) => tree,
+            None => {
+                return Err(format!("No tree found for {}", uri));
+            }
+        };
+        let source_code = match self.get_source_code(uri) {
+            Some(source_code) => source_code,
+            None => {
+                return Err(format!("No source code found for {}", uri));
+            }
+        };
+        let language_id = match self.get_language_id(uri) {
+            Some(language_id) => language_id,
+            None => {
+                return Err(format!("No language id found for {}", uri));
+            }
+        };
+
+        // TODO: partial update
+        let (definitions_lookup_map, ordered_scopes, mut identifiers) =
+            build_definitions_and_scopes(&source_code, &tree.root_node(), &language_id);
+
+        update_identifiers_kind(
+            &mut identifiers,
+            &ordered_scopes,
+            &source_code,
+            &tree,
+            &language_id,
+        );
+
+        let parsed_info = ParsedInfo::new(&ordered_scopes, &definitions_lookup_map, &identifiers);
+        self.update_parsed_info(&uri, &parsed_info);
+
+        self.update_diagnostics(&uri)?;
+        Ok(())
     }
 }

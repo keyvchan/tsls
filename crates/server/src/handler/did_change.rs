@@ -9,10 +9,18 @@ use tree_sitter::{InputEdit, Point};
 use crate::global_state::GlobalState;
 
 pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut GlobalState) {
-    let language_id = global_state
-        .get_language_id(&params.text_document.uri)
-        .unwrap_or_default();
-    let mut parser = match get_parser(language_id) {
+    let language_id = match global_state.get_language_id(&params.text_document.uri) {
+        Some(language_id) => language_id,
+        None => {
+            error!(
+                "Language not found for document: {}",
+                params.text_document.uri
+            );
+            return;
+        }
+    };
+
+    let mut parser = match get_parser(language_id.to_string()) {
         Some(parser) => parser,
         None => {
             error!("No parser found for language");
@@ -21,11 +29,7 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     };
 
     // Check version
-    if params.text_document.version
-        <= global_state
-            .get_version(&params.text_document.uri)
-            .unwrap_or(0)
-    {
+    if params.text_document.version <= global_state.get_version(&params.text_document.uri) {
         error!("Received outdated version of text document");
         return;
     }
@@ -36,9 +40,28 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     }
 
     // update cache
-    let mut source_code = global_state
-        .get_source_code(&params.text_document.uri)
-        .unwrap_or_else(|| "".as_bytes().to_vec());
+    // let source_code = match global_state.get_source_code_mut(&params.text_document.uri) {
+    //     Some(source_code) => source_code,
+    //     None => {
+    //         error!(
+    //             "No source code found for document: {}",
+    //             params.text_document.uri
+    //         );
+    //         return;
+    //     }
+    // };
+
+    let document = match global_state.get_document_mut(&params.text_document.uri) {
+        Some(document) => document,
+        None => {
+            error!(
+                "No document found for document: {}",
+                params.text_document.uri
+            );
+            return;
+        }
+    };
+
     let mut start_byte;
     let mut end_byte;
     let mut start_position;
@@ -53,11 +76,11 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         new_end_position: Point { row: 0, column: 0 },
     };
 
-    // copy to a new tree
-    let mut old_tree = match global_state.get_tree(&params.text_document.uri) {
-        Some(tree) => tree.clone(),
-        None => return,
-    };
+    // // copy to a new tree
+    // let mut old_tree = match global_state.get_tree_mut(&params.text_document.uri) {
+    //     Some(tree) => tree,
+    //     None => return,
+    // };
 
     // Update the edit object
     for change in params.content_changes {
@@ -66,11 +89,11 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
 
         // calculate the start and end byte
         start_byte = position_to_offset(
-            &source_code,
+            &document.source_code(),
             Point::new(range.start.line as usize, range.start.character as usize),
         );
         end_byte = position_to_offset(
-            &source_code,
+            &document.source_code(),
             Point::new(range.end.line as usize, range.end.character as usize),
         );
 
@@ -110,31 +133,34 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
             edit.new_end_position = start_position;
 
             // edit the source_code
-            source_code.drain(start_byte..end_byte);
+            document.source_code_mut().drain(start_byte..end_byte);
         } else {
             // Modification
             edit.old_end_byte = start_byte;
             edit.new_end_byte = end_byte + content.len();
 
             // edit the source_code
-            source_code.splice(start_byte..end_byte, content.as_bytes().to_vec());
+            document
+                .source_code_mut()
+                .splice(start_byte..end_byte, content.as_bytes().to_vec());
 
             // edit the old_end_position
-            edit.new_end_position = offset_to_position(&source_code, end_byte + content.len() - 1);
+            edit.new_end_position =
+                offset_to_position(&document.source_code(), end_byte + content.len() - 1);
             edit.old_end_position = start_position;
         }
 
         // fixed: index out of range on symbol modified
         debug!("InputEdit: {:?}", edit);
         // edit tree each rounds
-        perform_edit(&mut old_tree, &edit);
+        perform_edit(document.tree_mut(), &edit);
     }
 
     // update cache
-    global_state.update_source_code(&params.text_document.uri, source_code.clone());
+    // global_state.update_source_code(&params.text_document.uri, source_code);
 
     // Use final source code and final tree to generate new AST
-    let new_tree = match parser.parse(source_code.clone(), Some(&old_tree)) {
+    let new_tree = match parser.parse(document.source_code(), Some(&document.tree())) {
         Some(tree) => tree,
         None => return,
     };

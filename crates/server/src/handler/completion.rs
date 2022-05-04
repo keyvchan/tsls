@@ -1,6 +1,8 @@
-use helper::types::Symbol;
 use log::debug;
-use lsp_server::{ErrorCode::InternalError, RequestId, Response};
+use lsp_server::{
+    ErrorCode::{InternalError, ParseError},
+    RequestId, Response,
+};
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionParams, CompletionResponse,
 };
@@ -10,6 +12,7 @@ use crate::global_state::GlobalState;
 
 pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -> Response {
     debug!("got completion request #{}: {:?}", id, params);
+    let url = params.text_document_position.text_document.uri;
 
     // 1. we check the context
     let context = params.context.unwrap_or(lsp_types::CompletionContext {
@@ -20,11 +23,8 @@ pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -
     let mut completion_items: Vec<CompletionItem> = Vec::new();
     // push all keywords to completion_items
     for keyword in state
-        .sources
-        .get(&params.text_document_position.text_document.uri)
-        .unwrap()
-        .keywords
-        .iter()
+        .get_keywords(&url)
+        .unwrap_or_else(|| &vec!["".to_string()])
     {
         completion_items.push(CompletionItem {
             label: keyword.to_string(),
@@ -40,22 +40,22 @@ pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -
 
             let scope_id = get_smallest_scope_id_by_position(
                 &params.text_document_position.position,
-                &state
-                    .sources
-                    .get(&params.text_document_position.text_document.uri)
-                    .unwrap()
-                    .ordered_scopes,
+                &state.get_ordered_scopes(&url).unwrap_or_else(|| &vec![]),
             );
             debug!("scope id: {}", scope_id);
 
-            let symbols = vec![Symbol::default()];
-            let symbols = state
-                .sources
-                .get(&params.text_document_position.text_document.uri)
-                .unwrap()
-                .identifiers
-                .get(&scope_id)
-                .unwrap_or(&symbols);
+            let symbols_map = match state.get_identifiers(&url) {
+                Some(symbols) => symbols,
+                None => {
+                    return Response::new_err(
+                        id,
+                        ParseError as i32,
+                        "no identifiers found".to_string(),
+                    )
+                }
+            };
+
+            let symbols = symbols_map.get(&scope_id).unwrap_or_else(|| &vec![]);
 
             for symbol in symbols {
                 match *symbol.completion_kind.last().unwrap() {

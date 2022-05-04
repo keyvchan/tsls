@@ -11,19 +11,14 @@ pub fn document_symbol(
 ) -> Response {
     let uri = params.text_document.uri;
 
-    let properties = if let Some(properties) = state.sources.get(&uri) {
-        properties
-    } else {
-        return Response::new_err(
-            id,
-            ParseError as i32,
-            "No properties found for this document".to_string(),
-        );
-    };
-
     let mut document_symbols: Vec<DocumentSymbol> = Vec::new();
 
-    let identifiers = &properties.identifiers;
+    let identifiers = match state.get_identifiers(&uri) {
+        Some(identifiers) => identifiers,
+        None => {
+            return Response::new_err(id, ParseError as i32, "No identifiers found".to_string());
+        }
+    };
 
     for symbols in identifiers.values() {
         #[allow(deprecated)]
