@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use helper::types::Symbol;
 use log::warn;
 use lsp_types::{Diagnostic, Position, Url};
+use queries::errors::build_diagnostics;
 use tree_sitter::{Node, Range, Tree};
 
 type Byte = u8;
@@ -57,12 +58,32 @@ impl GlobalState {
         self.diagnostics.get(uri).cloned()
     }
 
-    /// Get a mutable reference to the ast
+    // update the diagnostics of a given url
+    pub fn update_diagnostics(&mut self, uri: &lsp_types::Url) -> Result<(), String> {
+        let properties = match self.sources.get(uri) {
+            Some(properties) => properties,
+            None => return Err("No properties found".into()),
+        };
+        let diagnostics = build_diagnostics(
+            properties.source_code.clone(),
+            &self.sources.get(uri).unwrap().ast.root_node(),
+        );
+        self.diagnostics.insert(uri.clone(), diagnostics);
+        Ok(())
+    }
+
+    /// Get a inmutable reference to the ast
     pub fn get_tree(&self, url: &Url) -> Option<&Tree> {
         match self.sources.get(url) {
             Some(properties) => Some(&properties.ast),
             None => None,
         }
+    }
+
+    pub fn get_snapshot_tree(&self, url: &Url) -> Option<Tree> {
+        self.sources
+            .get(url)
+            .map(|properties| properties.ast.clone())
     }
 
     /// Get the source code of a given url, return None if not found, byte vector otherwise
@@ -83,6 +104,12 @@ impl GlobalState {
     pub fn update_source_code(&mut self, url: &Url, new_source_code: Vec<Byte>) {
         if let Some(properties) = self.sources.get_mut(url) {
             properties.source_code = new_source_code;
+        }
+    }
+
+    pub fn update_tree(&mut self, url: &Url, new_tree: Tree) {
+        if let Some(properties) = self.sources.get_mut(url) {
+            properties.ast = new_tree;
         }
     }
 

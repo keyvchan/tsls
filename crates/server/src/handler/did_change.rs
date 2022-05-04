@@ -12,7 +12,7 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     let language_id = global_state
         .get_language_id(&params.text_document.uri)
         .unwrap_or_default();
-    let mut parser = match get_parser(language_id.clone()) {
+    let mut parser = match get_parser(language_id) {
         Some(parser) => parser,
         None => {
             error!("No parser found for language");
@@ -139,13 +139,24 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
         None => return,
     };
 
-    global_state.update_cache(
-        lsp_types::TextDocumentItem {
-            language_id,
-            uri: params.text_document.uri.to_owned(),
-            version: params.text_document.version,
-            text: String::from_utf8(source_code).unwrap(),
-        },
-        &new_tree,
-    );
+    // update tree
+    global_state.update_tree(&params.text_document.uri, new_tree);
+
+    // update diagnostics
+    match global_state.update_diagnostics(&params.text_document.uri) {
+        Ok(()) => (),
+        Err(e) => {
+            error!("{}", e);
+        }
+    }
+    // pospone the cache update to did_save
+    // global_state.update_cache(
+    //     lsp_types::TextDocumentItem {
+    //         language_id,
+    //         uri: params.text_document.uri.to_owned(),
+    //         version: params.text_document.version,
+    //         text: String::from_utf8(source_code).unwrap(),
+    //     },
+    //     &new_tree,
+    // );
 }

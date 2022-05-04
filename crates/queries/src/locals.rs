@@ -18,22 +18,19 @@ pub const SCOPE: &str = "scope";
 
 /// build scopes from biggest to smallest
 fn build_scopes(
-    source_code: &lsp_types::TextDocumentItem,
+    source_code: &Vec<u8>,
     node: Node,
+    language_id: &str,
 ) -> (Vec<tree_sitter::Range>, HashMap<usize, Vec<Symbol>>) {
     let query_source = {
-        if let Some(x) = get_query_source(source_code.language_id.as_str(), "locals") {
+        if let Some(x) = get_query_source(language_id, "locals") {
             x
         } else {
             "".to_string()
         }
     };
 
-    let result = match_by_query_source(
-        &source_code.text.as_bytes().to_vec(),
-        node,
-        query_source.as_str(),
-    );
+    let result = match_by_query_source(source_code, node, query_source.as_str());
 
     // A scope contains a node
     let mut identifiers: HashMap<usize, Vec<Symbol>> = HashMap::new();
@@ -55,30 +52,27 @@ fn build_scopes(
 }
 
 fn build_definitions_and_identifiers(
-    source_code: &lsp_types::TextDocumentItem,
+    source_code: &Vec<u8>,
     node: Node,
     scopes: &[tree_sitter::Range],
+    language_id: &str,
 ) -> HashMap<String, Vec<Symbol>> {
     error!("build_definitions_and_identifiers: {:?}", source_code);
     let query_source = {
-        if let Some(x) = get_query_source(source_code.language_id.as_str(), "locals") {
+        if let Some(x) = get_query_source(language_id, "locals") {
             x
         } else {
             "".to_string()
         }
     };
-    let result = capture_by_query_source(
-        &source_code.text.as_bytes().to_vec(),
-        node.to_owned(),
-        query_source.as_str(),
-    );
+    let result = capture_by_query_source(source_code, node.to_owned(), query_source.as_str());
     let mut definitions: HashMap<String, Vec<Symbol>> = HashMap::new();
 
     // use name + smallest_scope_id as key
     for (variable_type, node) in result {
         // for (variable_type, node) in item {
 
-        let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
+        let variable_name = node.utf8_text(source_code).unwrap();
         match variable_type.as_str() {
             DIFINITION_VAR | DIFINITION_FUNCTION => {
                 let smallest_scope_id = get_smallest_scope_id_by_node(&node, scopes);
@@ -124,17 +118,13 @@ fn build_definitions_and_identifiers(
 
     // TODO: query struct/class fields, add it to children
     let query_source = {
-        if let Some(x) = get_query_source(source_code.language_id.as_str(), "children") {
+        if let Some(x) = get_query_source(language_id, "children") {
             x
         } else {
             "".to_string()
         }
     };
-    let result = capture_by_query_source(
-        &source_code.text.as_bytes().to_vec(),
-        node.to_owned(),
-        query_source.as_str(),
-    );
+    let result = capture_by_query_source(source_code, node.to_owned(), query_source.as_str());
 
     definitions
 }
@@ -142,15 +132,17 @@ fn build_definitions_and_identifiers(
 /// Build the definition map and scope map for the first time
 /// Called when didOpen
 pub fn build_definitions_and_scopes(
-    source_code: &lsp_types::TextDocumentItem,
+    source_code: &Vec<u8>,
     root_node: &tree_sitter::Node,
+    language_id: &str,
 ) -> (
     HashMap<String, Vec<Symbol>>,
     Vec<tree_sitter::Range>,
     HashMap<usize, Vec<Symbol>>,
 ) {
-    let (scopes, identifiers) = build_scopes(source_code, root_node.to_owned());
-    let definitions = build_definitions_and_identifiers(source_code, root_node.to_owned(), &scopes);
+    let (scopes, identifiers) = build_scopes(source_code, root_node.to_owned(), language_id);
+    let definitions =
+        build_definitions_and_identifiers(source_code, root_node.to_owned(), &scopes, language_id);
 
     (definitions, scopes, identifiers)
 }

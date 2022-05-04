@@ -23,5 +23,5 @@ pub fn did_open(params: lsp_types::DidOpenTextDocumentParams, global_state: &mut
         }
     };
 
-    global_state.update_cache(params.text_document, &tree);
+    global_state.build_cache(params.text_document, Some(&tree));
 }

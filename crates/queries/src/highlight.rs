@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use helper::types::Symbol;
 use log::error;
-use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
+use lsp_types::{CompletionItemKind, SymbolKind};
 use tree_sitter::{Language, Parser, Range, Tree};
 
 use crate::{
@@ -14,21 +14,18 @@ use crate::{
 pub fn update_identifiers_kind(
     identifiers: &mut HashMap<usize, Vec<Symbol>>,
     scopes: &[Range],
-    source_code: &TextDocumentItem,
+    source_code: &Vec<u8>,
     tree: &Tree,
+    language_id: &str,
 ) {
-    let source = get_query_source(source_code.language_id.as_str(), "highlights").unwrap();
-    let captures = capture_by_query_source(
-        &source_code.text.as_bytes().to_vec(),
-        tree.root_node(),
-        &source,
-    );
+    let source = get_query_source(language_id, "highlights").unwrap();
+    let captures = capture_by_query_source(source_code, tree.root_node(), &source);
 
     let mut visited_names: Vec<(usize, String)> = vec![];
     let mut result = HashMap::<(usize, String), Symbol>::new();
     for (capture_name, node) in captures {
         let smallest_scope_id = get_smallest_scope_id_by_node(&node, scopes);
-        let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
+        let variable_name = node.utf8_text(source_code).unwrap();
         let (completion_item_kind, symbol_kind) = get_kind(capture_name);
 
         // TODO: Better way to handle this.

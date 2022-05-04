@@ -13,11 +13,27 @@ impl GlobalState {
     pub fn get_snapshot(&self) -> GlobalState {
         self.clone()
     }
-    pub fn build_cache(&mut self, source_code: TextDocumentItem, tree: &Tree) {
+    pub fn build_cache(&mut self, source_code: TextDocumentItem, tree: Option<&Tree>) {
+        // if tree is None, it means we already parsed the source code
+        // and we can use the cached tree
+        let tree = match tree {
+            Some(tree) => tree.clone(),
+            None => self.get_snapshot_tree(&source_code.uri).unwrap(),
+        };
         let (definitions_lookup_map, ordered_scopes, mut identifiers) =
-            build_definitions_and_scopes(&source_code, &tree.root_node());
+            build_definitions_and_scopes(
+                &source_code.text.as_bytes().to_vec(),
+                &tree.root_node(),
+                &source_code.language_id,
+            );
 
-        update_identifiers_kind(&mut identifiers, &ordered_scopes, &source_code, tree);
+        update_identifiers_kind(
+            &mut identifiers,
+            &ordered_scopes,
+            &source_code.text.as_bytes().to_vec(),
+            &tree,
+            &source_code.language_id,
+        );
 
         let keywords = highlight::build_keywords_cache(source_code.language_id.clone());
 
@@ -42,7 +58,8 @@ impl GlobalState {
         self.diagnostics.insert(source_code.uri, diagnostics);
     }
 
-    pub fn update_cache(&mut self, source_code: TextDocumentItem, tree: &Tree) {
+    // WARN: Not used for now
+    pub fn update_cache(&mut self, source_code: TextDocumentItem, tree: Option<&Tree>) {
         // check if the cache needed to be updated by source_code.version
         if source_code.version >= self.get_version(&source_code.uri).unwrap_or_default() {
             // insert the cache
