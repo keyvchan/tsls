@@ -25,10 +25,10 @@ jobs:
       - name: Build
         uses: actions-rs/cargo@v1
         with:
-          command: build --verbose
+          command: build
           args: --verbose
       - name: Run tests
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose --workspace --exclude tree-sitter-query
+          args: --workspace --exclude tree-sitter-query
