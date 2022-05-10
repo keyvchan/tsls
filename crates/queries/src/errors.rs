@@ -5,8 +5,8 @@ use crate::match_by_query_source;
 
 pub const ERROR: &str = "ERROR";
 
-pub fn build_diagnostics(source_code: &Vec<u8>, node: &Node) -> Vec<lsp_types::Diagnostic> {
-    let result = match_by_query_source(source_code, *node, "(ERROR) @ERROR");
+pub fn build_diagnostics(source_code: Vec<u8>, node: &Node) -> Vec<lsp_types::Diagnostic> {
+    let result = match_by_query_source(&source_code, *node, "(ERROR) @ERROR");
 
     let mut errors: Vec<lsp_types::Diagnostic> = Vec::new();
 

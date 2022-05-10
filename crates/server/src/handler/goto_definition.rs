@@ -1,5 +1,5 @@
-use log::error;
-use lsp_server::{ErrorCode::ParseError, Response};
+use log::{debug, error};
+use lsp_server::ErrorCode::ParseError;
 
 use crate::global_state::GlobalState;
 
@@ -8,30 +8,14 @@ pub fn goto_definition(
     params: lsp_types::GotoDefinitionParams,
     global_state: GlobalState,
 ) -> lsp_server::Response {
-    let url = &params.text_document_position_params.text_document.uri;
-    let parsed_info = global_state.parsed_info().get(url).unwrap();
-    let tree = match global_state.get_tree(url) {
-        Some(tree) => tree,
-        None => {
-            return Response::new_err(
-                id,
-                ParseError as i32,
-                "No tree found for this file".to_string(),
-            );
-        }
-    };
-    let scopes = &parsed_info.ordered_scopes();
-
-    let source_code = match global_state.get_source_code(&url) {
-        Some(source_code) => source_code,
-        None => {
-            return Response::new_err(
-                id,
-                ParseError as i32,
-                "No source code found for this file".to_string(),
-            )
-        }
-    };
+    debug!("got gotoDefinition request #{}: {:?}", id, params);
+    let properties = global_state
+        .sources
+        .get(&params.text_document_position_params.text_document.uri)
+        .unwrap();
+    let tree = &properties.ast;
+    let scopes = &properties.ordered_scopes;
+    let source_code = &properties.source_code;
 
     let node_position = params.text_document_position_params.position;
     let point = tree_sitter::Point::new(
@@ -49,7 +33,7 @@ pub fn goto_definition(
         Some(node) => {
             // check current scope
 
-            let loopup_table = &parsed_info.definitions_lookup_map();
+            let loopup_table = &properties.definitions_lookup_map;
             let smallest_scope_id = queries::utils::get_smallest_scope_id_by_node(&node, scopes);
 
             let variable_name = node.utf8_text(source_code).unwrap().to_owned();
@@ -88,7 +72,7 @@ pub fn goto_definition(
 
     // Only can go to current files
     let location = vec![lsp_types::Location {
-        uri: *url,
+        uri: params.text_document_position_params.text_document.uri,
         range: lsp_types::Range {
             start: lsp_types::Position {
                 line: ranges[0].start.line,

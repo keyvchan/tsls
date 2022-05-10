@@ -27,7 +27,7 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
         );
     };
 
-    let properties = if let Some(properties) = state.parsed_info().get(&uri) {
+    let properties = if let Some(properties) = state.sources.get(&uri) {
         properties
     } else {
         return Response::new_err(
@@ -37,21 +37,10 @@ pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) ->
         );
     };
 
-    let loopup_table = &properties.definitions_lookup_map();
-    let smallest_scope_id = get_smallest_scope_id_by_node(&node, &properties.ordered_scopes());
+    let loopup_table = &properties.definitions_lookup_map;
+    let smallest_scope_id = get_smallest_scope_id_by_node(&node, &properties.ordered_scopes);
 
-    let source_code = match state.get_source_code(&uri) {
-        Some(source_code) => source_code,
-        None => {
-            return Response::new_err(
-                id,
-                ParseError as i32,
-                "No source code found for this document".to_string(),
-            )
-        }
-    };
-
-    let variable_name = if let Ok(variable_name) = node.utf8_text(&source_code) {
+    let variable_name = if let Ok(variable_name) = node.utf8_text(&properties.source_code) {
         variable_name
     } else {
         return Response::new_err(

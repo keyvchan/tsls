@@ -7,14 +7,14 @@ pub fn publish_diagnostics(
     uri: lsp_types::Url,
     global_state: GlobalState,
 ) -> lsp_server::Notification {
-    let diagnostics = global_state.get_diagnostics(&uri);
+    let diagnostics = global_state.get_diagnostics(&uri).unwrap_or_default();
 
     debug!("publish_diagnostics: {:?}", diagnostics);
 
     let params = lsp_types::PublishDiagnosticsParams {
         uri: uri.clone(),
         diagnostics: diagnostics.to_vec(),
-        version: Some(global_state.get_version(&uri)),
+        version: global_state.get_version(&uri),
     };
 
     let result = serde_json::to_value(&params).unwrap();

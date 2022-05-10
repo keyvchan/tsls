@@ -5,11 +5,7 @@ use tree_sitter::Tree;
 
 use crate::{capture_by_query_source, utils::get_query_source};
 
-pub fn text_edits(
-    text: &Vec<u8>,
-    language: &str,
-    old_tree: &Tree,
-) -> Result<Vec<TextEdit>, String> {
+pub fn text_edits(text: Vec<u8>, language: &str, old_tree: &Tree) -> Result<Vec<TextEdit>, String> {
     let parser = match get_parser(language.to_string()) {
         Some(parser) => parser,
         None => return Err("No parser found for language".to_string()),
@@ -21,7 +17,7 @@ pub fn text_edits(
         None => return Err("No query source found".to_string()),
     };
 
-    for (capture, node) in capture_by_query_source(text, old_tree.root_node(), &query_source) {
+    for (capture, node) in capture_by_query_source(&text, old_tree.root_node(), &query_source) {
         debug!("capture: {:?}, {:?}", capture, node);
     }
 
