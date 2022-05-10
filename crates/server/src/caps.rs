@@ -1,7 +1,7 @@
 use lsp_types::{
-    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, ServerCapabilities,
-    TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
-    WorkDoneProgressOptions,
+    ClientCapabilities, CompletionOptions, DeclarationCapability, OneOf, SaveOptions,
+    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind, TextDocumentSyncOptions,
+    TextDocumentSyncSaveOptions, WorkDoneProgressOptions,
 };
 
 /// The capabilities provided by the client (editor)
@@ -14,7 +14,10 @@ pub fn new(client_caps: ClientCapabilities) -> ServerCapabilities {
                 change: Some(TextDocumentSyncKind::INCREMENTAL),
                 will_save: None,
                 will_save_wait_until: None,
-                save: None,
+                // we don't need text here since we already processed in didchange
+                save: Some(TextDocumentSyncSaveOptions::SaveOptions(SaveOptions {
+                    include_text: Some(false),
+                })),
             },
         )),
         completion_provider: Some(CompletionOptions {

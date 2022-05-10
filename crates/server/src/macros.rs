@@ -67,9 +67,11 @@ pub mod notification {
         ($not:expr, $conn:expr, $state:ident) => {
             use lsp_types::{
                 notification::{
-                    DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, Notification,
+                    DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
+                    DidSaveTextDocument, Notification,
                 },
                 DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+                DidSaveTextDocumentParams,
             };
             match $not.method.as_str() {
                 DidOpenTextDocument::METHOD => {
@@ -80,6 +82,9 @@ pub mod notification {
                 }
                 DidCloseTextDocument::METHOD => {
                     not!(did_close, DidCloseTextDocumentParams, $not, $conn, $state)
+                }
+                DidSaveTextDocument::METHOD => {
+                    not!(did_save, DidSaveTextDocumentParams, $not, $conn, $state)
                 }
 
                 _ => {

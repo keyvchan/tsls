@@ -1,3 +1,4 @@
+#![feature(is_some_with)]
 pub mod errors;
 pub mod highlight;
 pub mod indents;

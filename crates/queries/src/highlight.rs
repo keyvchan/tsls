@@ -1,12 +1,12 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::from_utf8};
 
 use helper::types::Symbol;
-use log::error;
-use lsp_types::{CompletionItemKind, SymbolKind, TextDocumentItem};
+use log::debug;
+use lsp_types::{CompletionItemKind, SymbolKind};
 use tree_sitter::{Language, Parser, Range, Tree};
 
 use crate::{
-    capture_by_query_source,
+    capture_by_query_source, match_by_query_source,
     utils::{get_query_source, get_smallest_scope_id_by_node},
 };
 
@@ -14,21 +14,22 @@ use crate::{
 pub fn update_identifiers_kind(
     identifiers: &mut HashMap<usize, Vec<Symbol>>,
     scopes: &[Range],
-    source_code: &TextDocumentItem,
+    source_code: &Vec<u8>,
     tree: &Tree,
+    language_id: &str,
 ) {
-    let source = get_query_source(source_code.language_id.as_str(), "highlights").unwrap();
+    let source = get_query_source(language_id, "highlights").unwrap();
     let captures = capture_by_query_source(
-        &source_code.text.as_bytes().to_vec(),
+        source_code,
         tree.root_node(),
-        &source,
+        from_utf8(source.as_bytes()).unwrap(),
     );
 
     let mut visited_names: Vec<(usize, String)> = vec![];
     let mut result = HashMap::<(usize, String), Symbol>::new();
     for (capture_name, node) in captures {
         let smallest_scope_id = get_smallest_scope_id_by_node(&node, scopes);
-        let variable_name = node.utf8_text(source_code.text.as_bytes()).unwrap();
+        let variable_name = node.utf8_text(source_code).unwrap();
         let (completion_item_kind, symbol_kind) = get_kind(capture_name);
 
         // TODO: Better way to handle this.
@@ -132,69 +133,54 @@ pub fn build_keywords_cache(language_id: String) -> Vec<String> {
     let language: Language = tree_sitter_query::language();
     parser.set_language(language).unwrap();
 
-    let tree = parser.parse(source.clone(), None).unwrap();
+    let tree = parser.parse(&source, None).unwrap();
+    let mut keywords = vec![];
 
-    let mut lists: Vec<String> = vec![];
+    let keywords_capture: Vec<&str> = vec![
+        "keyword",
+        "keyword.operator",
+        "keyword.return",
+        "keyword.function",
+        "conditional",
+    ];
 
-    for (capture_name, node) in capture_by_query_source(
+    for matches in match_by_query_source(
         &source.as_bytes().to_vec(),
         tree.root_node(),
         r#"
-        (list
-            (
-                capture
-                    name: (identifier) @capture
-            ) 
-        )@list
-
-        (
-            capture
-                name: (identifier) @capture
-        ) 
-
-        "#,
+            (anonymous_node
+              name: (identifier) @node_name
+              (capture
+                name: (identifier) @capture_name
+              )
+            )
+            (list
+              (anonymous_node
+                name: (identifier)
+              )+ @node_name
+              (capture
+                name: (identifier) @capture_name
+              )
+            )
+    "#,
     ) {
-        let node_content = node.utf8_text(source.as_bytes()).unwrap();
-        match capture_name.as_str() {
-            "list" => {
-                lists.push(node_content.to_string());
-            }
-            "capture" => match node_content {
-                "keyword" | "repeat" => {}
-                _ => {
-                    lists.pop();
+        // the last one of matches should be the name
+        if matches
+            .last()
+            .is_some_and(|m| keywords_capture.contains(&m.1.utf8_text(source.as_bytes()).unwrap()))
+        {
+            // add to keywords cache, exclude len == 1
+            for (_, m) in matches.iter().take(matches.len() - 1) {
+                let mut node_content = m.utf8_text(source.as_bytes()).unwrap_or("");
+                node_content = node_content.trim_start_matches('"').trim_end_matches('"');
+                if node_content.len() > 1 {
+                    keywords.push(node_content.to_string());
                 }
-            },
-            _ => {}
+            }
         }
     }
 
-    let mut keywords: Vec<String> = vec![];
-
-    for item in lists {
-        let new_tree = parser.parse(item.clone(), None).unwrap();
-        for (_capture_name, node) in capture_by_query_source(
-            &item.as_bytes().to_vec(),
-            new_tree.root_node(),
-            r#"
-                (
-                    list
-                        (
-                            anonymous_node
-                                name: (identifier) @keyword
-                        )
-                )
-            "#,
-        ) {
-            let node_content = node
-                .utf8_text(item.as_bytes())
-                .unwrap()
-                .trim_start_matches('"')
-                .trim_end_matches('"');
-            keywords.push(node_content.to_string());
-        }
-    }
-    error!("{:?}", keywords);
+    debug!("{:?}", keywords);
 
     keywords
 }
