@@ -32,4 +32,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --exclude tree-sitter-query
+          args: --workspace --exclude tree-sitter-query --verbose
