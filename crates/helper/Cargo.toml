@@ -12,7 +12,7 @@ log = "0.4.14"
 
 tree-sitter-c = {version = "0.20.1", optional = false}
 tree-sitter-cpp = { version = "0.20.0", optional = false}
-tree-sitter-python = { version = "0.19.1", optional = false}
+tree-sitter-python = { version = "0.20.1", optional = false}
 tree-sitter-go = { version = "0.19.1", optional = false}
 tree-sitter-javascript = { version = "0.20.0", optional = false}
 tree-sitter-rust = { version = "0.20.1", optional = false}
