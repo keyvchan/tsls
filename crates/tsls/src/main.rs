@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // initial the logger
     // flexi_logger::Logger::try_with_env_or_str("debug")?.start()?;
     let _logger = Logger::try_with_str("debug")?
-        .log_to_file(FileSpec::default())
+        // .log_to_file(FileSpec::default())
         .write_mode(WriteMode::BufferAndFlush)
         .start()?;
     // .start()
@@ -37,12 +37,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         cli::setup(args.setup);
     }
 
-    match args.mode.as_str() {
-        "server" => {
-            server_mode().unwrap();
-            Ok(())
+    loop {
+        match args.mode.as_str() {
+            "server" => {
+                match server_mode() {
+                    Ok(()) => {
+                        warn!("shutting down gracefully");
+                        return Ok(());
+                    }
+                    Err(e) => {
+                        // warn and restart server
+                        warn!("{}, restart server", e);
+                    }
+                };
+            }
+            "headless" => unimplemented!("headless mode"),
+            _ => unimplemented!("unknown mode"),
         }
-        "headless" => unimplemented!("headless mode"),
-        _ => unimplemented!("unknown mode"),
     }
 }
