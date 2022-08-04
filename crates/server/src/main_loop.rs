@@ -34,5 +34,5 @@ pub fn main_loop(
             }
         }
     }
-    Ok(())
+    Err("main loop ended".into())
 }

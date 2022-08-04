@@ -17,7 +17,8 @@ pub fn server_mode() -> Result<(), Box<dyn Error + Sync + Send>> {
 
     // Create the transport. Includes the stdio (stdin and stdout) versions but this could
     // also be implemented to use sockets or HTTP.
-    let (connection, io_threads) = Connection::stdio();
+    // let (connection, io_threads) = Connection::stdio();
+    let (connection, io_threads) = Connection::listen("localhost:12345")?;
 
     let (connection_id, initialization_params) = connection.initialize_start()?;
 
