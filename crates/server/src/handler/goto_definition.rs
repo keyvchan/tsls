@@ -1,12 +1,11 @@
+use database::GlobalStateSnapshot;
 use log::{debug, error};
 use lsp_server::ErrorCode::ParseError;
-
-use crate::global_state::GlobalState;
 
 pub fn goto_definition(
     id: lsp_server::RequestId,
     params: lsp_types::GotoDefinitionParams,
-    global_state: GlobalState,
+    global_state: GlobalStateSnapshot,
 ) -> lsp_server::Response {
     debug!("got gotoDefinition request #{}: {:?}", id, params);
     let properties = global_state

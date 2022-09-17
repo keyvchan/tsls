@@ -1,25 +1,27 @@
+use database::{GlobalStateSnapshot, SourceDatabase};
 use log::debug;
-use lsp_types::notification::Notification;
-
-use crate::global_state::GlobalState;
+use lsp_types::notification::{Notification, PublishDiagnostics};
 
 pub fn publish_diagnostics(
     uri: lsp_types::Url,
-    global_state: GlobalState,
+    global_state: GlobalStateSnapshot,
 ) -> lsp_server::Notification {
-    let diagnostics = global_state.get_diagnostics(&uri).unwrap_or_default();
+    // accuire the lock
+    let diagnostics = global_state.diagnostics.lock();
+    // get the diagnostics for the file
+    let diagnostics = diagnostics.get(&uri).unwrap();
 
     debug!("publish_diagnostics: {:?}", diagnostics);
 
     let params = lsp_types::PublishDiagnosticsParams {
         uri: uri.clone(),
         diagnostics: diagnostics.to_vec(),
-        version: global_state.get_version(&uri),
+        version: Some(global_state.db.source(uri).version),
     };
 
     let result = serde_json::to_value(&params).unwrap();
     lsp_server::Notification {
-        method: lsp_types::notification::PublishDiagnostics::METHOD.to_string(),
+        method: PublishDiagnostics::METHOD.to_string(),
         params: result,
     }
 }

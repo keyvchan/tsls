@@ -1,3 +1,4 @@
+use database::{GlobalState, SourceDatabase};
 use helper::{
     convert::{offset_to_position, position_to_offset},
     tree_mutator::{get_parser, perform_edit},
@@ -6,13 +7,10 @@ use log::{debug, error};
 use lsp_types::{self, DidChangeTextDocumentParams};
 use tree_sitter::{InputEdit, Point};
 
-use crate::global_state::GlobalState;
-
 pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut GlobalState) {
-    let language_id = global_state
-        .get_language_id(&params.text_document.uri)
-        .unwrap_or_default();
-    let mut parser = match get_parser(language_id) {
+    let mut source_file = global_state.database.source(params.text_document.uri);
+    // get the language id
+    let mut parser = match get_parser(source_file.language_id) {
         Some(parser) => parser,
         None => {
             error!("No parser found for language");
@@ -21,11 +19,7 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     };
 
     // Check version
-    if params.text_document.version
-        <= global_state
-            .get_version(&params.text_document.uri)
-            .unwrap_or(0)
-    {
+    if params.text_document.version <= source_file.version {
         error!("Received outdated version of text document");
         return;
     }
@@ -36,9 +30,7 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     }
 
     // update cache
-    let mut source_code = global_state
-        .get_source_code(&params.text_document.uri)
-        .unwrap_or_else(|| "".as_bytes().to_vec());
+    let mut source_code = source_file.text.into_bytes(); // make a clone of the source code
     let mut start_byte;
     let mut end_byte;
     let mut start_position;
@@ -54,7 +46,7 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     };
 
     // copy to a new tree
-    let mut old_tree = match global_state.get_tree(&params.text_document.uri) {
+    let mut old_tree = match global_state.asts.get(&source_file.url) {
         Some(tree) => tree.clone(),
         None => return,
     };
@@ -131,32 +123,14 @@ pub fn did_change(params: DidChangeTextDocumentParams, global_state: &mut Global
     }
 
     // update cache
-    global_state.update_source_code(&params.text_document.uri, source_code.clone());
+    global_state.set_source_inputs(source_file.url, source_file);
 
     // Use final source code and final tree to generate new AST
-    let new_tree = match parser.parse(source_code.clone(), Some(&old_tree)) {
+    let new_tree = match parser.parse(source_code, Some(&old_tree)) {
         Some(tree) => tree,
         None => return,
     };
 
     // update tree
-    global_state.update_tree(&params.text_document.uri, new_tree);
-
-    // update diagnostics
-    match global_state.update_diagnostics(&params.text_document.uri) {
-        Ok(()) => (),
-        Err(e) => {
-            error!("{}", e);
-        }
-    }
-    // pospone the cache update to did_save
-    // global_state.update_cache(
-    //     lsp_types::TextDocumentItem {
-    //         language_id,
-    //         uri: params.text_document.uri.to_owned(),
-    //         version: params.text_document.version,
-    //         text: String::from_utf8(source_code).unwrap(),
-    //     },
-    //     &new_tree,
-    // );
+    global_state.asts.insert(source_file.url, new_tree);
 }

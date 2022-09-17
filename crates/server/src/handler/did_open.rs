@@ -1,7 +1,7 @@
+use database::GlobalState;
 use helper::tree_mutator::get_parser;
 use log::{debug, error};
-
-use crate::global_state::GlobalState;
+use types::SourceFile;
 
 pub fn did_open(params: lsp_types::DidOpenTextDocumentParams, global_state: &mut GlobalState) {
     debug!("Received a DidOpenTextDocument: {:?}", params);
@@ -22,6 +22,14 @@ pub fn did_open(params: lsp_types::DidOpenTextDocumentParams, global_state: &mut
             return;
         }
     };
-
-    global_state.build_cache(params.text_document, Some(&tree));
+    global_state.set_source_inputs(
+        params.text_document.uri,
+        SourceFile {
+            url: params.text_document.uri,
+            text: params.text_document.text,
+            version: params.text_document.version,
+            language_id: params.text_document.language_id,
+        },
+    );
+    global_state.asts.insert(params.text_document.uri, tree);
 }

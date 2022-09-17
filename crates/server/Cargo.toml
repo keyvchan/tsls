@@ -19,4 +19,7 @@ libloading = "0.7.2"
 
 queries = { path = "../queries", version = "0.1.0" }
 helper = { path = "../helper", version = "0.1.0" }
+database = { path = "../database", version = "0.1.0" }
+types = { path = "../types", version = "0.1.0" }
+
 

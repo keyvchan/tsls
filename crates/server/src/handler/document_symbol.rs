@@ -1,8 +1,7 @@
+use database::GlobalState;
 use helper::convert::ts_range_to_lsp_range;
 use lsp_server::{ErrorCode::ParseError, RequestId, Response};
 use lsp_types::{DocumentSymbol, DocumentSymbolParams};
-
-use crate::global_state::GlobalState;
 
 pub fn document_symbol(
     id: RequestId,

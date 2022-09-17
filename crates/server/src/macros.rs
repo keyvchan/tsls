@@ -49,10 +49,8 @@ pub mod notification {
             match not_res {
                 Ok(params) => {
                     handler::$method(params.clone(), &mut $state);
-                    let not = handler::publish_diagnostics(
-                        params.text_document.uri,
-                        $state.get_snapshot(),
-                    );
+                    let not =
+                        handler::publish_diagnostics(params.text_document.uri, $state.snapshot());
                     $conn.sender.send(Message::Notification(not))?;
                     continue;
                 }
