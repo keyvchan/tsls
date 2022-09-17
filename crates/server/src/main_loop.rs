@@ -1,10 +1,11 @@
 use std::error::Error;
 
+use database::GlobalState;
 use log::{debug, error, warn};
 use lsp_server::{Connection, Message};
 use lsp_types::InitializeParams;
 
-use crate::{global_state, handler, not, not_match, req, req_match};
+use crate::{handler, not, not_match, req, req_match};
 
 pub fn main_loop(
     connection: Connection,
@@ -12,7 +13,7 @@ pub fn main_loop(
 ) -> Result<(), Box<dyn Error + Sync + Send>> {
     warn!("starting main loop");
 
-    let mut global_state = global_state::GlobalState::new();
+    let mut global_state = GlobalState::new();
 
     for msg in &connection.receiver {
         // debug!("got msg: {:#?}", msg);
@@ -23,7 +24,7 @@ pub fn main_loop(
                 }
                 debug!("got request: {:?}", req);
 
-                req_match!(req, connection, global_state.get_snapshot());
+                req_match!(req, connection, global_state.snapshot());
             }
             Message::Response(resp) => {
                 debug!("got response: {:?}", resp);

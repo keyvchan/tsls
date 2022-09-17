@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
+use database::GlobalState;
 use helper::{tree_walker::get_named_node_by_position, types::Symbol};
 use lsp_server::{ErrorCode::ParseError, RequestId, Response};
 use lsp_types::{RenameParams, TextEdit, Url, WorkspaceEdit};
 use queries::utils::get_smallest_scope_id_by_node;
-
-use crate::global_state::GlobalState;
 
 /// Setp:
 /// 1. Find the smallest scope id of the node

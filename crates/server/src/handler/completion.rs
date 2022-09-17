@@ -1,3 +1,4 @@
+use database::GlobalState;
 use helper::types::Symbol;
 use log::debug;
 use lsp_server::{ErrorCode::InternalError, RequestId, Response};
@@ -5,8 +6,6 @@ use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionParams, CompletionResponse,
 };
 use queries::utils::get_smallest_scope_id_by_position;
-
-use crate::global_state::GlobalState;
 
 pub fn completion(id: RequestId, params: CompletionParams, state: GlobalState) -> Response {
     debug!("got completion request #{}: {:?}", id, params);

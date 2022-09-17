@@ -1,11 +1,10 @@
+use database::{GlobalState, GlobalStateSnapshot};
 use helper::tree_walker::get_named_node_by_position;
 use lsp_server::{ErrorCode::ParseError, RequestId, Response};
 use lsp_types::ReferenceParams;
 use queries::utils::get_smallest_scope_id_by_node;
 
-use crate::global_state::GlobalState;
-
-pub fn references(id: RequestId, params: ReferenceParams, state: GlobalState) -> Response {
+pub fn references(id: RequestId, params: ReferenceParams, state: GlobalStateSnapshot) -> Response {
     let uri = params.text_document_position.text_document.uri;
     let position = params.text_document_position.position;
     let tree = if let Some(tree) = state.get_tree(&uri) {
