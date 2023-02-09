@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 tree-sitter = "0.20.0"
-lsp-types = "0.93.0"
+lsp-types = "0.94.0"
 log = "0.4.14"
 
 tree-sitter-c = {version = "0.20.1", optional = false}
