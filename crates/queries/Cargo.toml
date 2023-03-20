@@ -9,7 +9,7 @@ edition = "2021"
 tree-sitter = "0.20.1"
 log = "0.4.0"
 lsp-types = "0.93.0"
-dirs = "4.0.0"
+dirs = "5.0.0"
 rust-embed = {version = "6.3.0", features = ["debug-embed"]}
 
 tree-sitter-query = {path = "../../parsers/tree-sitter-query", version = "0.0.1"}
